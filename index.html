@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GrafikAI — Creative Partner for DKV. Asisten kreatif berbasis AI untuk mencari ide, membuat konsep desain, dan mengembangkan kreativitas." />
+  <title>GrafikAI — Creative Partner for DKV</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238b5cf6'/%3E%3Cpath d='M9 22l5-11 3 6 2-3 3 8' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Lewati ke konten utama</a>
+
+  <header class="topbar" id="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="#/" aria-label="GrafikAI beranda">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+            <rect x="3" y="3" width="26" height="26" rx="8" stroke="currentColor" stroke-width="2.2"/>
+            <path d="M10 21l5-10 3 6 2-3 2 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand__text">Grafik<span class="brand__accent">AI</span></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav" aria-label="Buka menu navigasi">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="nav" id="primaryNav" aria-label="Navigasi utama">
+        <a href="#/" data-route="/">Beranda</a>
+        <a href="#/dashboard" data-route="/dashboard">Dashboard</a>
+        <a href="#/workspace" data-route="/workspace">AI Workspace</a>
+        <a href="#/color" data-route="/color">Color Studio</a>
+        <a href="#/typography" data-route="/typography">Typography</a>
+        <a href="#/projects" data-route="/projects">My Projects</a>
+        <a href="#/about" data-route="/about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="app" tabindex="-1"></main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <span>GrafikAI — Creative Partner for DKV</span>
+      <span class="footer__muted">Mode demo: hasil generator adalah simulasi lokal, tanpa koneksi AI API eksternal.</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Bundled classic script so the app runs by simply opening index.html (file://), no server needed.
+       For development, see the ES modules in /js (core, generators, pages, app). -->
+  <script src="js/grafikai.bundle.js"></script>
+</body>
+</html>

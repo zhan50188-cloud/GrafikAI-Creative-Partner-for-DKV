@@ -1,0 +1,13 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Dependencies (jika nanti ada)
+node_modules/
+
+# Vercel
+.vercel/
+
+# File lokal dev (server PowerShell tidak dibutuhkan di produksi)
+# serve.ps1 sengaja TIDAK di-ignore agar tetap tersimpan di repo sebagai alat dev lokal.
