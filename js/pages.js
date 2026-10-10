@@ -91,9 +91,9 @@ export function Landing() {
           el("a", { class: "btn btn--ghost", href: "#/dashboard", text: "Lihat Fitur" }),
         ]),
         el("div", { class: "hero__stats" }, [
-          stat("7", "Alat kreatif"),
+          stat("9", "Alat kreatif"),
           stat("∞", "Ide tak terbatas"),
-          stat("100%", "Berbasis input kamu"),
+          stat("PDF", "Export desain"),
         ]),
       ]),
       el("div", { class: "hero__art" }, [
@@ -129,6 +129,8 @@ const FEATURES = [
   { icon: "brief", title: "Design Brief Generator", desc: "Susun brief: tujuan, audiens, pesan, gaya visual.", href: "#/workspace?tab=brief" },
   { icon: "mood", title: "Creative Moodboard", desc: "Inspirasi visual berdasarkan konsep.", href: "#/workspace?tab=mood" },
   { icon: "prompt", title: "Prompt Generator", desc: "Buat prompt AI untuk gambar/referensi.", href: "#/workspace?tab=prompt" },
+  { icon: "poster", title: "Portfolio Layout Builder", desc: "Susun layout portofolio DKV, edit visual, export PDF.", href: "#/portfolio" },
+  { icon: "poster", title: "Poster Layout Builder", desc: "Rancang poster visual, atur elemen, export PDF/PNG.", href: "#/poster-builder" },
   { icon: "projects", title: "My Projects", desc: "Simpan dan kelola ide desainmu.", href: "#/projects" },
 ];
 
@@ -640,7 +642,7 @@ export function About() {
       el("div", { class: "feature-grid" }, [
         valueCard("Membantu, bukan menggantikan", "Hasil GrafikAI adalah titik awal. Keputusan desain tetap di tanganmu."),
         valueCard("Ramah pemula", "Istilah dijelaskan sederhana, cocok untuk siswa DKV yang baru belajar."),
-        valueCard("Berbasis input kamu", "Setiap hasil dibentuk dari tema dan gaya yang kamu pilih, bukan acak."),
+        valueCard("Mengikuti input kamu", "Hasil dibentuk dari tema dan gaya yang kamu pilih."),
         valueCard("Mode demo transparan", "Tanpa AI API eksternal, hasil adalah simulasi lokal yang realistis dan jelas ditandai."),
       ]),
       el("div", { class: "card" }, [

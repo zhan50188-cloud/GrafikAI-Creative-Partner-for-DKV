@@ -8,7 +8,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238b5cf6'/%3E%3Cpath d='M9 22l5-11 3 6 2-3 3 8' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;900&family=Poppins:wght@400;600;700&family=Lato:wght@400;700&family=Work+Sans:wght@400;600;700&family=Archivo+Black&family=Righteous&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -34,6 +34,8 @@
         <a href="#/" data-route="/">Beranda</a>
         <a href="#/dashboard" data-route="/dashboard">Dashboard</a>
         <a href="#/workspace" data-route="/workspace">AI Workspace</a>
+        <a href="#/portfolio" data-route="/portfolio">Portfolio</a>
+        <a href="#/poster-builder" data-route="/poster-builder">Poster</a>
         <a href="#/color" data-route="/color">Color Studio</a>
         <a href="#/typography" data-route="/typography">Typography</a>
         <a href="#/projects" data-route="/projects">My Projects</a>
@@ -56,5 +58,14 @@
   <!-- Bundled classic script so the app runs by simply opening index.html (file://), no server needed.
        For development, see the ES modules in /js (core, generators, pages, app). -->
   <script src="js/grafikai.bundle.js"></script>
+
+  <!-- Export libraries for the layout builders (PDF + PNG). Loaded from CDN.
+       NOTE: export butuh koneksi internet untuk memuat library ini. Semua fitur
+       editor lain tetap jalan offline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+
+  <!-- Portfolio & Poster Layout Builder (extends the core via window.GrafikAI). -->
+  <script src="js/layout-builder.js"></script>
 </body>
 </html>

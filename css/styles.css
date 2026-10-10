@@ -306,3 +306,133 @@ textarea { resize: vertical; min-height: 110px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+
+/* ===========================================================
+   Layout Builder (Portfolio & Poster) — visual editor
+   =========================================================== */
+.lb { animation: fade-up .5s var(--ease) both; }
+
+.lb-shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) { .lb-shell { grid-template-columns: 1fr; } }
+
+/* ----- settings panel ----- */
+.lb-panel {
+  background: linear-gradient(180deg, var(--surface), var(--bg-soft));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  position: sticky; top: 84px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+@media (max-width: 900px) { .lb-panel { position: static; max-height: none; } }
+.lb-panel::-webkit-scrollbar { width: 8px; }
+.lb-panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+
+.lb-group { margin-bottom: 18px; }
+.lb-group > .section-label { margin-bottom: 10px; }
+.lb-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.lb-row--2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.lb-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.lb-field label { font-size: 0.82rem; font-weight: 600; color: var(--text-soft); }
+.lb-field input[type="text"], .lb-field input[type="date"], .lb-field textarea, .lb-field select {
+  padding: 9px 11px; font-size: 0.9rem; border-radius: 9px;
+}
+.lb-field textarea { min-height: 70px; }
+
+.lb-color { display: flex; align-items: center; gap: 8px; }
+.lb-color input[type="color"] {
+  width: 38px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: none; cursor: pointer;
+}
+.lb-color span { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-display); }
+
+.lb-range { width: 100%; accent-color: var(--purple); }
+.lb-range-val { font-size: 0.78rem; color: var(--text-muted); float: right; }
+
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button {
+  flex: 1 1 auto; min-width: 56px; padding: 7px 10px; font-size: 0.8rem; font-weight: 500;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-soft);
+  border-radius: 8px; cursor: pointer; transition: .2s var(--ease);
+}
+.seg button:hover { border-color: var(--purple); color: var(--text); }
+.seg button.active { background: linear-gradient(135deg, var(--purple), var(--purple-deep)); color: #fff; border-color: transparent; }
+
+/* ----- canvas stage ----- */
+.lb-stage-wrap {
+  background:
+    linear-gradient(45deg, rgba(255,255,255,.015) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.015) 75%),
+    linear-gradient(45deg, rgba(255,255,255,.015) 25%, transparent 25%, transparent 75%, rgba(255,255,255,.015) 75%);
+  background-size: 24px 24px; background-position: 0 0, 12px 12px;
+  background-color: var(--bg-soft);
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px;
+  min-height: 400px;
+}
+.lb-toolbar { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; justify-content: space-between; align-items: center; }
+.lb-toolbar__group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.lb-scroll { width: 100%; overflow: auto; display: flex; justify-content: center; }
+
+/* The actual exported surface. Dimensions set inline per format. */
+.lb-canvas {
+  background: #ffffff; color: #111; position: relative; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5); flex: 0 0 auto;
+  transform-origin: top center;
+}
+
+/* page break indicator for multi-page portfolio */
+.lb-pages { display: flex; flex-direction: column; gap: 20px; align-items: center; }
+.lb-page-label { font-size: 0.75rem; color: var(--text-muted); align-self: flex-start; }
+
+/* generic element inside canvas */
+.lb-el { position: relative; }
+.lb-el[contenteditable="true"] { outline: 1px dashed transparent; transition: outline-color .15s; }
+.lb-el[contenteditable="true"]:hover { outline-color: rgba(139,92,246,.5); }
+.lb-el[contenteditable="true"]:focus { outline: 1px solid var(--purple); }
+
+.lb-img-slot {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  background: #ececf2; color: #6b6b7b; cursor: pointer; overflow: hidden; position: relative;
+  border: 1px dashed #c9c9d6;
+}
+.lb-img-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lb-img-slot .lb-img-hint { padding: 10px; font-size: 0.8rem; }
+.lb-img-slot .lb-img-remove {
+  position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%;
+  border: none; background: rgba(0,0,0,.6); color: #fff; cursor: pointer; display: none; font-size: 14px; line-height: 1;
+}
+.lb-img-slot:hover .lb-img-remove { display: block; }
+
+/* ----- template gallery ----- */
+.tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.tpl-card {
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface);
+  display: flex; flex-direction: column; transition: transform .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.tpl-card:hover { transform: translateY(-5px); border-color: var(--purple); box-shadow: var(--shadow-glow); }
+.tpl-thumb { aspect-ratio: 3/4; position: relative; overflow: hidden; background: #fff; }
+.tpl-thumb--wide { aspect-ratio: 16/9; }
+.tpl-meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.tpl-meta h4 { font-size: 0.98rem; }
+.tpl-cat { font-size: 0.72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--purple-bright); font-weight: 600; }
+.tpl-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
+.tpl-actions .btn { flex: 1; }
+
+.lb-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+
+/* export working note */
+.lb-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
+
+/* loading overlay for export */
+.lb-overlay {
+  position: fixed; inset: 0; background: rgba(12,11,16,.8); backdrop-filter: blur(4px);
+  display: grid; place-items: center; z-index: 500; color: var(--text);
+}
+.lb-overlay .card { text-align: center; }

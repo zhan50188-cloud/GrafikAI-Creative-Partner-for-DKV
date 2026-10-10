@@ -401,7 +401,9 @@
     brief: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>',
     mood: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
     prompt: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6M12 19h8"/></svg>',
-    projects: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'
+    projects: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    portfolio: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5M9 13h8M9 16h5"/></svg>',
+    posterbuilder: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="8" r="2.5"/><path d="M8 15l2.5-2.5L13 15l2-1.5L17 16"/></svg>'
   };
 
   function Landing() {
@@ -417,7 +419,7 @@
             el("a", { class: "btn", href: "#/workspace", html: "<span>Start Creating</span>" + iconArrow() }),
             el("a", { class: "btn btn--ghost", href: "#/dashboard", text: "Lihat Fitur" })
           ]),
-          el("div", { class: "hero__stats" }, [stat("7", "Alat kreatif"), stat("∞", "Ide tak terbatas"), stat("100%", "Berbasis input kamu")])
+          el("div", { class: "hero__stats" }, [stat("9", "Alat kreatif"), stat("∞", "Ide tak terbatas"), stat("PDF", "Export desain")])
         ]),
         el("div", { class: "hero__art" }, [el("div", { class: "ring" }), el("div", { class: "orb a" }), el("div", { class: "orb b" })])
       ])
@@ -441,7 +443,10 @@
     { icon: "brief", title: "Design Brief Generator", desc: "Susun brief: tujuan, audiens, pesan, gaya visual.", href: "#/workspace?tab=brief" },
     { icon: "mood", title: "Creative Moodboard", desc: "Inspirasi visual berdasarkan konsep.", href: "#/workspace?tab=mood" },
     { icon: "prompt", title: "Prompt Generator", desc: "Buat prompt AI untuk gambar/referensi.", href: "#/workspace?tab=prompt" },
-    { icon: "projects", title: "My Projects", desc: "Simpan dan kelola ide desainmu.", href: "#/projects" }
+    { icon: "portfolio", title: "Portfolio Layout Builder", desc: "Susun layout portofolio DKV, edit visual, export PDF.", href: "#/portfolio" },
+    { icon: "posterbuilder", title: "Poster Layout Builder", desc: "Rancang poster visual, atur elemen, export PDF/PNG.", href: "#/poster-builder" },
+    { icon: "mood", title: "Template Gallery", desc: "6 template poster & 6 portofolio siap pakai.", href: "#/templates?type=portfolio" },
+    { icon: "projects", title: "My Projects", desc: "Simpan ide, lalu lihat desain tersimpan di My Layouts.", href: "#/projects" }
   ];
   function buildFeatureGrid(list) {
     var grid = el("div", { class: "feature-grid" });
@@ -843,7 +848,7 @@
       el("div", { class: "feature-grid" }, [
         valueCard("Membantu, bukan menggantikan", "Hasil GrafikAI adalah titik awal. Keputusan desain tetap di tanganmu."),
         valueCard("Ramah pemula", "Istilah dijelaskan sederhana, cocok untuk siswa DKV yang baru belajar."),
-        valueCard("Berbasis input kamu", "Setiap hasil dibentuk dari tema dan gaya yang kamu pilih, bukan acak."),
+        valueCard("Mengikuti input kamu", "Hasil dibentuk dari tema dan gaya yang kamu pilih."),
         valueCard("Mode demo transparan", "Tanpa AI API eksternal, hasil adalah simulasi lokal yang realistis dan jelas ditandai.")
       ]),
       el("div", { class: "card" }, [
@@ -860,6 +865,19 @@
     "/": Landing, "/dashboard": Dashboard, "/workspace": Workspace,
     "/color": ColorStudio, "/typography": TypographyStudio, "/projects": Projects, "/about": About
   };
+
+  // Public API so extension modules (e.g. js/layout-builder.js) can add routes
+  // and reuse the exact same helpers + store without duplicating code.
+  window.GrafikAI = {
+    el: el, $: $, $$: $$, toast: toast, copyText: copyText, store: store,
+    formatDate: formatDate, escapeHtml: escapeHtml, pick: pick, shuffle: shuffle, seededPick: seededPick,
+    generatePalette: generatePalette, generateTypography: generateTypography,
+    registerRoute: function (path, viewFn) { if (path && typeof viewFn === "function") { routes[path] = viewFn; } },
+    navigate: function (hash) { location.hash = hash; },
+    rerender: function () { renderRoute(); }
+  };
+  // Let extensions know the core is ready (in case they load after boot)
+  try { window.dispatchEvent(new Event("grafikai:ready")); } catch (e) {}
   function parseHash() {
     var raw = location.hash.replace(/^#/, "") || "/";
     var parts = raw.split("?");
