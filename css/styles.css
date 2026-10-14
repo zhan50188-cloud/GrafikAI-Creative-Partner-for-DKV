@@ -436,3 +436,57 @@ textarea { resize: vertical; min-height: 110px; }
   display: grid; place-items: center; z-index: 500; color: var(--text);
 }
 .lb-overlay .card { text-align: center; }
+
+/* ===========================================================
+   Poster Editor — element-based interactive canvas
+   =========================================================== */
+.pe-canvas-outer { width: 100%; overflow: auto; display: flex; justify-content: center; padding: 10px; }
+.pe-canvas {
+  position: relative; background: #fff; flex: 0 0 auto; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5); transform-origin: top center;
+}
+.pe-el {
+  position: absolute; box-sizing: border-box; cursor: move; user-select: none;
+  display: flex; outline: 2px solid transparent; transition: outline-color .1s;
+}
+.pe-el:hover { outline-color: rgba(139,92,246,.45); }
+.pe-el.selected { outline: 2px solid var(--purple); }
+.pe-el__text {
+  width: 100%; height: 100%; overflow: hidden; word-break: break-word; display: block;
+  cursor: text; white-space: pre-wrap;
+}
+.pe-el__img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.pe-el__imgempty {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: #ececf2; color: #6b6b7b; font-size: 12px; text-align: center;
+}
+.pe-el__shape { width: 100%; height: 100%; }
+/* resize handle (bottom-right) */
+.pe-handle {
+  position: absolute; width: 14px; height: 14px; right: -7px; bottom: -7px;
+  background: var(--purple); border: 2px solid #fff; border-radius: 50%; cursor: nwse-resize; z-index: 5;
+}
+
+.pe-toolbar { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; justify-content: space-between; align-items: center; }
+.pe-toolbar__group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.pe-iconbtn {
+  width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-soft); cursor: pointer; font-size: 15px;
+  transition: .18s var(--ease);
+}
+.pe-iconbtn:hover { border-color: var(--purple); color: var(--text); }
+.pe-iconbtn:disabled { opacity: .4; cursor: not-allowed; }
+.pe-zoom { font-size: 0.82rem; color: var(--text-muted); min-width: 44px; text-align: center; }
+
+.pe-layerlist { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; }
+.pe-layer {
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface); font-size: 0.82rem; cursor: pointer;
+}
+.pe-layer.active { border-color: var(--purple); background: var(--surface-2); }
+.pe-layer__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pe-layer__btn { background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+.pe-layer__btn:hover { color: var(--text); }
+
+.pe-addbar { display: flex; gap: 6px; flex-wrap: wrap; }
+.pe-empty-note { font-size: 0.8rem; color: var(--text-muted); }

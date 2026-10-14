@@ -41,7 +41,7 @@ lalu buka `http://localhost:8080`. Untuk memakai versi modul, ubah di `index.htm
 | **Dashboard** | Semua fitur dalam bentuk card |
 | **AI Workspace** | Idea Generator, Poster Concept Maker, Design Brief, Moodboard, Prompt Generator |
 | **Portfolio Builder** | 6 template DKV, kelola halaman (tambah/hapus/urut), case study, multi-gambar, export PDF |
-| **Poster Builder** | 6 gaya, 5 layout, upload gambar, export PDF/PNG |
+| **Poster Editor** | Editor elemen interaktif: 8 template, drag/select/resize, layer, undo/redo, duplicate, zoom, export PDF/PNG |
 | **Template Gallery** | 6 template poster + 6 portofolio, Use/Customize |
 | **Color Studio** | Palet warna harmonis (analog/komplementer/triadik/monokrom), klik untuk salin |
 | **Typography Studio** | Rekomendasi pasangan font per gaya + panduan ukuran |

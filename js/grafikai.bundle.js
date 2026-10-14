@@ -444,7 +444,7 @@
     { icon: "mood", title: "Creative Moodboard", desc: "Inspirasi visual berdasarkan konsep.", href: "#/workspace?tab=mood" },
     { icon: "prompt", title: "Prompt Generator", desc: "Buat prompt AI untuk gambar/referensi.", href: "#/workspace?tab=prompt" },
     { icon: "portfolio", title: "Portfolio Layout Builder", desc: "Susun layout portofolio DKV, edit visual, export PDF.", href: "#/portfolio" },
-    { icon: "posterbuilder", title: "Poster Layout Builder", desc: "Rancang poster visual, atur elemen, export PDF/PNG.", href: "#/poster-builder" },
+    { icon: "posterbuilder", title: "Poster Design Editor", desc: "Editor interaktif: geser elemen, layer, undo/redo, zoom, export PDF/PNG.", href: "#/poster-builder" },
     { icon: "mood", title: "Template Gallery", desc: "6 template poster & 6 portofolio siap pakai.", href: "#/templates?type=portfolio" },
     { icon: "projects", title: "My Projects", desc: "Simpan ide, lalu lihat desain tersimpan di My Layouts.", href: "#/projects" }
   ];

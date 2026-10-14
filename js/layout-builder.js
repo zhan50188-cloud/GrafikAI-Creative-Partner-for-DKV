@@ -656,190 +656,503 @@
     /* =========================================================
        POSTER BUILDER
        ========================================================= */
+    // Element-based templates. x/y/w/h are PERCENT of canvas (0-100) so they are
+    // format- and zoom-independent, and export matches exactly.
+    function te(x, y, w, h, text, opts) {
+      opts = opts || {};
+      return { type: "text", x: x, y: y, w: w, h: h, text: text,
+        size: opts.size || 5, color: opts.color || null, align: opts.align || "left",
+        weight: opts.weight || 400, family: opts.family || "body", lh: opts.lh || 1.2 };
+    }
+    function ie(x, y, w, h, url) { return { type: "image", x: x, y: y, w: w, h: h, url: url || "" }; }
+    function se(x, y, w, h, color) { return { type: "shape", x: x, y: y, w: w, h: h, color: color || "accent", radius: 0 }; }
+
+    // 8 templates, each a DISTINCT composition (not just recolored).
     var POSTER_TEMPLATES = [
-      { id: "po-min-center", name: "Clean Center", cat: "Minimalist", style: "Minimalist", layout: "centered" },
-      { id: "po-bold-type", name: "Loud Headline", cat: "Bold Typography", style: "Bold Typography", layout: "asymmetric" },
-      { id: "po-swiss-grid", name: "Swiss Grid", cat: "Swiss Style", style: "Swiss Style", layout: "grid" },
-      { id: "po-retro-split", name: "Retro Split", cat: "Retro", style: "Retro", layout: "split" },
-      { id: "po-futur-img", name: "Neon Focus", cat: "Futuristic", style: "Futuristic", layout: "image" },
-      { id: "po-edi-center", name: "Editorial Poster", cat: "Editorial", style: "Editorial", layout: "centered" }
+      { id: "po-min-center", name: "Clean Center", cat: "Minimalist", style: "Minimalist", layout: "centered", thumb: "centered",
+        make: function () { return [
+          te(12, 16, 76, 18, "JUDUL POSTER", { size: 11, weight: 800, align: "center", family: "head", color: "text" }),
+          te(20, 34, 60, 6, "subjudul atau tagline", { size: 4.2, align: "center", color: "accent", weight: 600 }),
+          ie(28, 44, 44, 30),
+          te(18, 78, 64, 10, "Deskripsi acara atau pesan utama poster.", { size: 3.4, align: "center", color: "text" }),
+          te(18, 90, 64, 5, "Tanggal · Lokasi", { size: 3.2, align: "center", weight: 700, color: "text" })
+        ]; } },
+      { id: "po-bold-type", name: "Loud Headline", cat: "Bold Typography", style: "Bold Typography", layout: "asymmetric", thumb: "asymmetric",
+        make: function () { return [
+          te(8, 44, 84, 34, "SUARA\nLANTANG", { size: 20, weight: 900, align: "left", family: "head", color: "text", lh: 0.92 }),
+          se(8, 40, 20, 1.6, "accent"),
+          te(8, 80, 60, 8, "deskripsi singkat yang menonjol", { size: 3.8, color: "accent", weight: 700 }),
+          te(8, 90, 84, 5, "Tanggal · Lokasi · @akun", { size: 3, color: "text" })
+        ]; } },
+      { id: "po-swiss-grid", name: "Swiss Grid", cat: "Swiss Style", style: "Swiss Style", layout: "grid", thumb: "grid",
+        make: function () { return [
+          se(8, 8, 84, 1.2, "accent"),
+          te(8, 12, 60, 16, "Swiss\nPoster", { size: 11, weight: 900, family: "head", color: "text", lh: 0.95 }),
+          te(70, 12, 22, 10, "No. 01\n2024", { size: 3.2, color: "text", align: "right", weight: 700 }),
+          ie(8, 40, 84, 40),
+          te(8, 84, 50, 10, "Deskripsi mengikuti sistem grid yang ketat dan rapi.", { size: 3.2, color: "text" }),
+          te(62, 84, 30, 6, "Tanggal · Lokasi", { size: 3.2, align: "right", weight: 700, color: "accent" })
+        ]; } },
+      { id: "po-retro-split", name: "Retro Split", cat: "Retro", style: "Retro", layout: "split", thumb: "split",
+        make: function () { return [
+          se(0, 0, 50, 100, "accent"),
+          ie(4, 8, 42, 84),
+          te(54, 20, 40, 24, "RETRO\nVIBES", { size: 12, weight: 700, family: "head", color: "text", lh: 1.0 }),
+          te(54, 48, 40, 12, "Nuansa hangat ala 70-an dengan tekstur dan warna pudar.", { size: 3.4, color: "text" }),
+          te(54, 80, 40, 6, "Tanggal · Lokasi", { size: 3.2, weight: 700, color: "text" })
+        ]; } },
+      { id: "po-futur-img", name: "Neon Focus", cat: "Futuristic", style: "Futuristic", layout: "image", thumb: "image",
+        make: function () { return [
+          ie(0, 0, 100, 100),
+          se(0, 62, 100, 38, "overlay"),
+          te(8, 70, 84, 16, "MASA\nDEPAN", { size: 13, weight: 700, family: "head", color: "#ffffff", lh: 0.95 }),
+          te(8, 88, 60, 6, "subjudul neon", { size: 3.8, color: "accent", weight: 700 }),
+          te(60, 88, 32, 6, "Tanggal · Lokasi", { size: 3, color: "#ffffff", align: "right" })
+        ]; } },
+      { id: "po-edi-mag", name: "Editorial Magazine", cat: "Editorial", style: "Editorial", layout: "editorial", thumb: "centered",
+        make: function () { return [
+          te(10, 8, 80, 4, "EDISI KHUSUS · 2024", { size: 2.8, align: "center", weight: 700, color: "accent" }),
+          se(44, 13, 12, 0.6, "accent"),
+          te(8, 18, 84, 20, "Judul Editorial yang Elegan", { size: 9, align: "center", family: "head", weight: 700, color: "text", lh: 1.05 }),
+          ie(14, 42, 72, 34),
+          te(14, 80, 72, 10, "Artikel pembuka dengan tipografi serif yang berkelas dan ruang napas.", { size: 3.2, align: "center", color: "text" })
+        ]; } },
+      { id: "po-min-sidebar", name: "Sidebar Minimal", cat: "Minimalist", style: "Minimalist", layout: "sidebar", thumb: "split",
+        make: function () { return [
+          se(0, 0, 6, 100, "accent"),
+          te(12, 14, 76, 20, "Judul di Kiri", { size: 10, weight: 800, family: "head", color: "text", lh: 1.0 }),
+          te(12, 38, 50, 8, "subjudul ringkas", { size: 4, color: "accent", weight: 600 }),
+          ie(12, 50, 76, 30),
+          te(12, 84, 76, 8, "Informasi tambahan di bagian bawah.", { size: 3.2, color: "text" })
+        ]; } },
+      { id: "po-bold-block", name: "Color Block", cat: "Bold Typography", style: "Bold Typography", layout: "block", thumb: "grid",
+        make: function () { return [
+          se(0, 0, 100, 46, "accent"),
+          te(8, 10, 84, 28, "BLOK\nWARNA", { size: 17, weight: 900, family: "head", color: "#111111", lh: 0.92 }),
+          ie(8, 52, 84, 30),
+          te(8, 86, 60, 8, "Komposisi blok warna yang berani dan tegas.", { size: 3.4, color: "text" }),
+          te(70, 86, 22, 5, "@akun", { size: 3.2, align: "right", weight: 700, color: "accent" })
+        ]; } }
     ];
 
-    function defaultPosterState(tpl) {
-      return {
-        kind: "poster",
-        format: "a4",
-        style: tpl ? tpl.style : "Minimalist",
-        layout: tpl ? tpl.layout : "centered",
-        titleSize: 56, align: "left", spacing: 18,
-        bg: null, text: null, accent: null,
-        title: "JUDUL POSTER",
-        subtitle: "Subjudul atau tagline singkat",
-        description: "Deskripsi acara, informasi utama, atau pesan poster.",
-        date: "", location: "", extra: "info tambahan / kontak",
-        image: ""
-      };
-    }
     function posterColors(st) {
       var s = POSTER_STYLES[st.style] || POSTER_STYLES.Minimalist;
       return { bg: st.bg || s.bg, text: st.text || s.text, accent: st.accent || s.accent, font: s.font, head: s.head, hw: s.headWeight };
     }
 
-    function renderPosterCanvas(st) {
-      var c = posterColors(st);
-      var fmt = POSTER_FORMATS[st.format];
-      var pad = Math.round(fmt.w * 0.08);
-      var canvas = el("div", { class: "lb-canvas", style:
-        "width:" + fmt.w + "px;height:" + fmt.h + "px;background:" + c.bg + ";color:" + c.text + ";font-family:" + c.font +
-        ";padding:" + pad + "px;box-sizing:border-box;position:relative;overflow:hidden;" });
-
-      function editable(tag, text, styleStr, onCommit) {
-        var n = el(tag, { class: "lb-el", contenteditable: "true", style: styleStr, text: text });
-        n.addEventListener("blur", function () { onCommit && onCommit(n.textContent); });
-        return n;
-      }
-      function title() { return editable("h1", st.title, "font-family:" + c.head + ";font-weight:" + c.hw + ";font-size:" + st.titleSize + "px;line-height:1.0;margin:0;text-align:" + st.align + ";", function (v) { st.title = v; }); }
-      function subtitle() { return editable("div", st.subtitle, "font-size:" + Math.round(st.titleSize * 0.4) + "px;color:" + c.accent + ";font-weight:600;text-align:" + st.align + ";margin-top:8px;", function (v) { st.subtitle = v; }); }
-      function desc() { return editable("div", st.description, "font-size:16px;line-height:1.6;text-align:" + st.align + ";", function (v) { st.description = v; }); }
-      function metaRow() {
-        var parts = [];
-        if (st.date || st.location) {
-          parts.push(editable("div", (st.date || "Tanggal") + "  ·  " + (st.location || "Lokasi"), "font-size:15px;font-weight:600;text-align:" + st.align + ";"));
-        }
-        parts.push(editable("div", st.extra, "font-size:13px;opacity:.75;text-align:" + st.align + ";", function (v) { st.extra = v; }));
-        return el("div", { style: "display:flex;flex-direction:column;gap:6px;" }, parts);
-      }
-      function image(styleStr) {
-        return imgSlot(function () { return st.image || ""; }, function (v) { st.image = v; }, (styleStr || "") + "border-radius:6px;");
-      }
-
-      var stack = "display:flex;flex-direction:column;gap:" + st.spacing + "px;height:100%;box-sizing:border-box;";
-
-      if (st.layout === "centered") {
-        canvas.appendChild(el("div", { style: stack + "justify-content:center;text-align:center;" }, [title(), subtitle(), image("width:100%;height:38%;"), desc(), metaRow()]));
-      } else if (st.layout === "asymmetric") {
-        canvas.appendChild(el("div", { style: stack }, [
-          el("div", { style: "margin-top:auto;" }, [title(), subtitle()]),
-          image("width:70%;height:30%;align-self:flex-end;"),
-          desc(), metaRow()
-        ]));
-      } else if (st.layout === "split") {
-        canvas.style.padding = "0";
-        canvas.appendChild(el("div", { style: "display:flex;height:100%;" }, [
-          el("div", { style: "flex:1;" }, [image("width:100%;height:100%;border-radius:0;")]),
-          el("div", { style: "flex:1;padding:" + pad + "px;display:flex;flex-direction:column;gap:" + st.spacing + "px;justify-content:center;" }, [title(), subtitle(), desc(), metaRow()])
-        ]));
-      } else if (st.layout === "grid") {
-        canvas.appendChild(el("div", { style: "display:grid;grid-template-rows:auto 1fr auto;gap:" + st.spacing + "px;height:100%;" }, [
-          el("div", {}, [title(), subtitle()]),
-          image("width:100%;height:100%;"),
-          el("div", { style: "border-top:3px solid " + c.accent + ";padding-top:12px;" }, [desc(), metaRow()])
-        ]));
-      } else { // image-focused
-        canvas.style.padding = "0";
-        canvas.appendChild(image("position:absolute;inset:0;width:100%;height:100%;border-radius:0;"));
-        canvas.appendChild(el("div", { style: "position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,.05));" }));
-        canvas.appendChild(el("div", { style: "position:absolute;left:0;right:0;bottom:0;padding:" + pad + "px;color:#fff;display:flex;flex-direction:column;gap:10px;" }, [
-          editable("h1", st.title, "font-family:" + c.head + ";font-weight:" + c.hw + ";font-size:" + st.titleSize + "px;line-height:1;margin:0;color:#fff;", function (v) { st.title = v; }),
-          editable("div", st.subtitle, "font-size:" + Math.round(st.titleSize * 0.4) + "px;color:" + c.accent + ";font-weight:600;", function (v) { st.subtitle = v; }),
-          editable("div", (st.date || "Tanggal") + " · " + (st.location || "Lokasi"), "font-size:15px;color:#fff;")
-        ]));
-      }
-      return canvas;
+    function defaultPosterState(tpl) {
+      var t = tpl || POSTER_TEMPLATES[0];
+      var els = (t.make ? t.make() : POSTER_TEMPLATES[0].make());
+      // assign ids
+      els.forEach(function (e, i) { e.id = "e" + Date.now().toString(36) + i; });
+      return {
+        kind: "poster", format: "a4", style: t.style, templateName: t.name,
+        bg: null, text: null, accent: null,
+        elements: els
+      };
     }
 
     function PosterBuilder(params) {
       var tpl = params && params.tpl ? POSTER_TEMPLATES.filter(function (t) { return t.id === params.tpl; })[0] : null;
       var loaded = params && params.load ? layoutStore.get(params.load) : null;
       var st = loaded ? loaded.payload : defaultPosterState(tpl);
+      if (!st.elements) st = defaultPosterState(tpl); // migrate old shape
+      var selectedId = null;
+      var zoom = 1;
+      var fitScale = 1;
+
+      // ---- history ----
+      var history = [], hpos = -1;
+      function snapshot() {
+        var s = JSON.stringify(st.elements) + "|" + st.bg + "|" + st.text + "|" + st.accent + "|" + st.format + "|" + st.style;
+        // trim redo tail
+        history = history.slice(0, hpos + 1);
+        if (history[hpos] === s) return;
+        history.push(s); hpos = history.length - 1;
+        if (history.length > 60) { history.shift(); hpos--; }
+        updateUndoRedo();
+      }
+      function restore(s) {
+        var parts = s.split("|");
+        st.elements = JSON.parse(parts[0]);
+        st.bg = parts[1] === "null" ? null : parts[1];
+        st.text = parts[2] === "null" ? null : parts[2];
+        st.accent = parts[3] === "null" ? null : parts[3];
+        st.format = parts[4]; st.style = parts[5];
+        selectedId = null;
+        buildPanel(); renderCanvas();
+      }
+      function undo() { if (hpos > 0) { hpos--; restore(history[hpos]); updateUndoRedo(); } }
+      function redo() { if (hpos < history.length - 1) { hpos++; restore(history[hpos]); updateUndoRedo(); } }
 
       var page = el("div", { class: "lb" });
-      page.appendChild(headerBlock("Poster Layout Builder", "Rancang poster secara visual. Klik teks untuk mengedit, klik area gambar untuk upload. Export ke PDF atau PNG."));
+      page.appendChild(headerBlock("Poster Design Editor", "Editor interaktif: pilih & geser elemen di canvas, atur layer, ukuran, dan alignment. Undo/redo, duplicate, zoom, lalu export PDF/PNG."));
 
-      var scroll = el("div", { class: "lb-scroll" });
+      var fmt = function () { return POSTER_FORMATS[st.format]; };
+      function selEl() { return st.elements.filter(function (e) { return e.id === selectedId; })[0] || null; }
+
+      // ---- canvas ----
+      var canvasOuter = el("div", { class: "pe-canvas-outer" });
       var canvasNode = null;
 
-      function rebuild() {
-        scroll.innerHTML = "";
-        canvasNode = renderPosterCanvas(st);
-        scroll.appendChild(canvasNode);
-        requestAnimationFrame(function () { fitCanvas(canvasNode, POSTER_FORMATS[st.format]); });
+      function colorVal(key, fallback) {
+        var c = posterColors(st);
+        if (key === "accent") return c.accent;
+        if (key === "text") return c.text;
+        if (!key) return fallback || c.text;
+        return key; // literal hex
       }
 
+      function renderCanvas() {
+        canvasOuter.innerHTML = "";
+        var c = posterColors(st);
+        var f = fmt();
+        canvasNode = el("div", { class: "pe-canvas", style:
+          "width:" + f.w + "px;height:" + f.h + "px;background:" + c.bg + ";font-family:" + c.font + ";" });
+
+        st.elements.forEach(function (e) {
+          var node = el("div", { class: "pe-el" + (e.id === selectedId ? " selected" : ""), style:
+            "left:" + e.x + "%;top:" + e.y + "%;width:" + e.w + "%;height:" + e.h + "%;" });
+          node._eid = e.id;
+
+          if (e.type === "text") {
+            var fam = e.family === "head" ? c.head : c.font;
+            var fontPx = Math.round(f.w * (e.size / 100));
+            var span = el("div", { class: "pe-el__text", contenteditable: "false", style:
+              "font-family:" + fam + ";font-weight:" + e.weight + ";font-size:" + fontPx + "px;line-height:" + e.lh +
+              ";color:" + colorVal(e.color, c.text) + ";text-align:" + e.align + ";" });
+            span.textContent = e.text;
+            // double-click to edit inline
+            span.addEventListener("dblclick", function (ev) {
+              ev.stopPropagation();
+              span.setAttribute("contenteditable", "true"); span.focus();
+            });
+            span.addEventListener("blur", function () {
+              span.setAttribute("contenteditable", "false");
+              if (span.textContent !== e.text) { e.text = span.textContent; snapshot(); }
+            });
+            node.appendChild(span);
+          } else if (e.type === "image") {
+            if (e.url) { node.appendChild(el("img", { class: "pe-el__img", src: e.url, alt: "elemen gambar" })); }
+            else { node.appendChild(el("div", { class: "pe-el__imgempty", html: "＋ klik 2×<br>untuk upload" })); }
+            node.addEventListener("dblclick", function (ev) { ev.stopPropagation(); pickImageFor(e); });
+          } else if (e.type === "shape") {
+            var fill = e.color === "overlay" ? "linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,.02))" : colorVal(e.color, c.accent);
+            node.appendChild(el("div", { class: "pe-el__shape", style: "background:" + fill + ";border-radius:" + (e.radius || 0) + "px;" }));
+          }
+
+          // selection + drag
+          node.addEventListener("pointerdown", function (ev) {
+            if (span2editing(ev.target)) return; // don't drag while editing text
+            ev.preventDefault();
+            selectedId = e.id; buildPanel(); markSelection();
+            startDrag(e, node, ev);
+          });
+
+          // resize handle on selected
+          if (e.id === selectedId) {
+            var handle = el("div", { class: "pe-handle" });
+            handle.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); startResize(e, node, ev); });
+            node.appendChild(handle);
+          }
+          canvasNode.appendChild(node);
+        });
+
+        // click empty canvas to deselect
+        canvasNode.addEventListener("pointerdown", function (ev) {
+          if (ev.target === canvasNode) { selectedId = null; buildPanel(); markSelection(); }
+        });
+
+        canvasOuter.appendChild(canvasNode);
+        applyZoom();
+      }
+
+      function span2editing(node) {
+        return node && node.getAttribute && node.getAttribute("contenteditable") === "true";
+      }
+      function markSelection() {
+        if (!canvasNode) return;
+        $$(".pe-el", canvasNode).forEach(function (n) {
+          var on = n._eid === selectedId;
+          n.classList.toggle("selected", on);
+          var h = n.querySelector(".pe-handle");
+          if (on && !h) {
+            var e = st.elements.filter(function (x) { return x.id === selectedId; })[0];
+            var handle = el("div", { class: "pe-handle" });
+            handle.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); startResize(e, n, ev); });
+            n.appendChild(handle);
+          } else if (!on && h) { h.remove(); }
+        });
+      }
+
+      function startDrag(e, node, ev) {
+        var rect = canvasNode.getBoundingClientRect();
+        var startX = ev.clientX, startY = ev.clientY, ox = e.x, oy = e.y;
+        function move(mv) {
+          var dx = (mv.clientX - startX) / rect.width * 100;
+          var dy = (mv.clientY - startY) / rect.height * 100;
+          e.x = clamp(ox + dx, -5, 100 - 2); e.y = clamp(oy + dy, -5, 100 - 2);
+          node.style.left = e.x + "%"; node.style.top = e.y + "%";
+        }
+        function up() {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+          snapshot(); buildPanel();
+        }
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      }
+      function startResize(e, node, ev) {
+        var rect = canvasNode.getBoundingClientRect();
+        var startX = ev.clientX, startY = ev.clientY, ow = e.w, oh = e.h;
+        function move(mv) {
+          var dw = (mv.clientX - startX) / rect.width * 100;
+          var dh = (mv.clientY - startY) / rect.height * 100;
+          e.w = clamp(ow + dw, 4, 100); e.h = clamp(oh + dh, 3, 100);
+          node.style.width = e.w + "%"; node.style.height = e.h + "%";
+          if (e.type === "text") { var span = node.querySelector(".pe-el__text"); } // font stays size-based
+        }
+        function up() {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+          snapshot(); buildPanel();
+        }
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      }
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+      function pickImageFor(e) {
+        var input = el("input", { type: "file", accept: "image/*", style: "display:none" });
+        document.body.appendChild(input);
+        input.addEventListener("change", function (ev) {
+          var fl = ev.target.files && ev.target.files[0];
+          readImage(fl, function (dataUrl) { e.url = dataUrl; snapshot(); renderCanvas(); markSelection(); });
+          document.body.removeChild(input);
+        });
+        input.click();
+      }
+
+      // ---- zoom (visual only; export uses true px) ----
+      function applyZoom() {
+        if (!canvasNode) return;
+        var f = fmt();
+        var avail = canvasOuter.clientWidth - 24;
+        fitScale = Math.min(1, avail / f.w);
+        var s = fitScale * zoom;
+        canvasNode.style.transform = "scale(" + s + ")";
+        canvasOuter.style.height = (f.h * s + 24) + "px";
+        if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + "%";
+      }
+
+      // ---- panel ----
       var panel = el("div", { class: "lb-panel" });
       function buildPanel() {
         panel.innerHTML = "";
-        panel.appendChild(group("Ukuran", [segmented(
-          Object.keys(POSTER_FORMATS).map(function (k) { return { value: k, label: POSTER_FORMATS[k].label }; }),
-          st.format, function (v) { st.format = v; rebuild(); })]));
-        panel.appendChild(group("Gaya", [segmented(Object.keys(POSTER_STYLES), st.style, function (v) { st.style = v; buildPanel(); rebuild(); })]));
-        panel.appendChild(group("Layout", [segmented(
-          [{ value: "centered", label: "Center" }, { value: "asymmetric", label: "Asym" }, { value: "split", label: "Split" }, { value: "grid", label: "Grid" }, { value: "image", label: "Image" }],
-          st.layout, function (v) { st.layout = v; rebuild(); })]));
-        panel.appendChild(group("Alignment Teks", [segmented(
-          [{ value: "left", label: "Kiri" }, { value: "center", label: "Tengah" }, { value: "right", label: "Kanan" }],
-          st.align, function (v) { st.align = v; rebuild(); })]));
 
-        panel.appendChild(group("Konten", [
-          textField("Judul", st.title, function (v) { st.title = v; rebuild(); }),
-          textField("Subjudul", st.subtitle, function (v) { st.subtitle = v; rebuild(); }),
-          textField("Deskripsi", st.description, function (v) { st.description = v; rebuild(); }, true),
-          textField("Tanggal", st.date, function (v) { st.date = v; rebuild(); }),
-          textField("Lokasi", st.location, function (v) { st.location = v; rebuild(); }),
-          textField("Info Tambahan", st.extra, function (v) { st.extra = v; rebuild(); })
-        ]));
+        panel.appendChild(group("Ukuran (preview)", [segmented(
+          Object.keys(POSTER_FORMATS).map(function (k) { return { value: k, label: POSTER_FORMATS[k].label }; }),
+          st.format, function (v) { st.format = v; snapshot(); renderCanvas(); })]));
+        panel.appendChild(group("Gaya", [segmented(Object.keys(POSTER_STYLES), st.style, function (v) { st.style = v; snapshot(); buildPanel(); renderCanvas(); })]));
 
         var c = posterColors(st);
-        panel.appendChild(group("Warna & Tipografi", [
-          colorField("Background", c.bg, function (v) { st.bg = v; rebuild(); }),
-          colorField("Teks", c.text, function (v) { st.text = v; rebuild(); }),
-          colorField("Aksen", c.accent, function (v) { st.accent = v; rebuild(); }),
-          rangeField("Ukuran Judul", st.titleSize, 28, 96, 1, function (v) { st.titleSize = v; rebuild(); }),
-          rangeField("Jarak Elemen", st.spacing, 6, 48, 1, function (v) { st.spacing = v; rebuild(); })
+        panel.appendChild(group("Warna Dasar", [
+          colorField("Background", c.bg, function (v) { st.bg = v; renderCanvas(); }),
+          colorField("Teks", c.text, function (v) { st.text = v; renderCanvas(); }),
+          colorField("Aksen", c.accent, function (v) { st.accent = v; renderCanvas(); }),
+          el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "🎨 Rekomendasi Palet", onClick: function () {
+            try { var pal = G.generatePalette ? G.generatePalette({ theme: "poster", style: "" }).colors : null;
+              if (pal && pal.length >= 5) { st.accent = pal[2].hex; st.bg = pal[4].hex; st.text = pal[0].hex; snapshot(); buildPanel(); renderCanvas(); toast("Palet diterapkan"); } } catch (e) { toast("Gagal.", "error"); }
+          } }),
+          el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "↺ Reset Warna ke Gaya", onClick: function () { st.bg = st.text = st.accent = null; snapshot(); buildPanel(); renderCanvas(); } })
         ]));
 
-        // Recommendations (reuse core generators)
-        var recRow = el("div", { class: "lb-row", style: "flex-direction:column;gap:8px;" });
-        recRow.appendChild(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "🎨 Rekomendasi Palet",
-          onClick: function () {
-            try {
-              var pal = (G.generatePalette ? G.generatePalette({ theme: st.title, style: "" }).colors : null);
-              if (pal && pal.length >= 3) { st.accent = pal[2].hex; st.bg = pal[4].hex; st.text = pal[0].hex; buildPanel(); rebuild(); toast("Palet diterapkan"); }
-            } catch (e) { toast("Gagal membuat palet.", "error"); }
-          } }));
-        recRow.appendChild(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "↺ Reset Warna ke Gaya",
-          onClick: function () { st.bg = st.text = st.accent = null; buildPanel(); rebuild(); } }));
-        panel.appendChild(group("Bantuan Desain", [recRow]));
+        // Add elements
+        panel.appendChild(group("Tambah Elemen", [el("div", { class: "pe-addbar" }, [
+          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Teks", onClick: function () { addElement("text"); } }),
+          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Gambar", onClick: function () { addElement("image"); } }),
+          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Shape", onClick: function () { addElement("shape"); } })
+        ])]));
+
+        // Layers
+        var layerList = el("div", { class: "pe-layerlist" });
+        // top layer = last in array; show reversed so top is first
+        st.elements.slice().reverse().forEach(function (e) {
+          var idx = st.elements.indexOf(e);
+          var name = e.type === "text" ? ("T: " + (e.text || "").slice(0, 14)) : (e.type === "image" ? "Gambar" : "Shape");
+          var row = el("div", { class: "pe-layer" + (e.id === selectedId ? " active" : "") }, [
+            el("span", { class: "pe-layer__name", text: name, onClick: function () { selectedId = e.id; buildPanel(); markSelection(); } }),
+            el("button", { class: "pe-layer__btn", type: "button", title: "Naikkan layer", text: "▲", onClick: function () { reorder(idx, 1); } }),
+            el("button", { class: "pe-layer__btn", type: "button", title: "Turunkan layer", text: "▼", onClick: function () { reorder(idx, -1); } }),
+            el("button", { class: "pe-layer__btn", type: "button", title: "Hapus", text: "✕", onClick: function () { removeElement(idx); } })
+          ]);
+          layerList.appendChild(row);
+        });
+        panel.appendChild(group("Layer (" + st.elements.length + ")", [layerList]));
+
+        // Selected element editor
+        var e = selEl();
+        if (e) {
+          var fields = [el("div", { class: "section-label", style: "color:var(--purple-bright)", text: "Elemen terpilih: " + e.type })];
+          // position & size
+          fields.push(el("div", { class: "lb-row--2" }, [
+            miniNum("X %", Math.round(e.x), function (v) { e.x = clamp(v, -10, 100); renderCanvas(); markSelection(); }),
+            miniNum("Y %", Math.round(e.y), function (v) { e.y = clamp(v, -10, 100); renderCanvas(); markSelection(); }),
+            miniNum("W %", Math.round(e.w), function (v) { e.w = clamp(v, 4, 100); renderCanvas(); markSelection(); }),
+            miniNum("H %", Math.round(e.h), function (v) { e.h = clamp(v, 3, 100); renderCanvas(); markSelection(); })
+          ]));
+          // alignment on canvas
+          fields.push(el("div", { class: "section-label", text: "Posisikan di Canvas" }));
+          fields.push(el("div", { class: "seg" }, [
+            alignBtn("⬅", function () { e.x = 6; after(); }),
+            alignBtn("⬌", function () { e.x = 50 - e.w / 2; after(); }),
+            alignBtn("➡", function () { e.x = 94 - e.w; after(); }),
+            alignBtn("⬆", function () { e.y = 6; after(); }),
+            alignBtn("⬍", function () { e.y = 50 - e.h / 2; after(); }),
+            alignBtn("⬇", function () { e.y = 94 - e.h; after(); })
+          ]));
+
+          if (e.type === "text") {
+            fields.push(textField("Teks", e.text, function (v) { e.text = v; renderCanvas(); markSelection(); }, true));
+            fields.push(rangeField("Ukuran Font", e.size, 2, 24, 0.2, function (v) { e.size = v; renderCanvas(); markSelection(); }));
+            fields.push(rangeField("Tebal (weight)", e.weight, 300, 900, 100, function (v) { e.weight = v; renderCanvas(); markSelection(); }));
+            fields.push(rangeField("Line Height", e.lh, 0.8, 2, 0.05, function (v) { e.lh = v; renderCanvas(); markSelection(); }));
+            fields.push(el("div", { class: "section-label", text: "Alignment Teks" }));
+            fields.push(segmented([{ value: "left", label: "Kiri" }, { value: "center", label: "Tengah" }, { value: "right", label: "Kanan" }], e.align, function (v) { e.align = v; renderCanvas(); markSelection(); }));
+            fields.push(el("div", { class: "section-label", text: "Font" }));
+            fields.push(segmented([{ value: "head", label: "Display" }, { value: "body", label: "Body" }], e.family, function (v) { e.family = v; renderCanvas(); markSelection(); }));
+            fields.push(el("div", { class: "section-label", text: "Warna Teks" }));
+            fields.push(segmented([{ value: "text", label: "Teks" }, { value: "accent", label: "Aksen" }], (e.color === "accent" ? "accent" : "text"), function (v) { e.color = v; renderCanvas(); markSelection(); }));
+          } else if (e.type === "image") {
+            fields.push(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Ganti Gambar", onClick: function () { pickImageFor(e); } }));
+            if (e.url) fields.push(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Hapus Gambar", onClick: function () { e.url = ""; snapshot(); renderCanvas(); markSelection(); } }));
+          } else if (e.type === "shape") {
+            fields.push(el("div", { class: "section-label", text: "Warna" }));
+            fields.push(segmented([{ value: "accent", label: "Aksen" }, { value: "text", label: "Teks" }, { value: "overlay", label: "Overlay" }], e.color, function (v) { e.color = v; renderCanvas(); markSelection(); }));
+            fields.push(rangeField("Sudut (radius)", e.radius || 0, 0, 60, 1, function (v) { e.radius = v; renderCanvas(); markSelection(); }));
+          }
+
+          fields.push(el("div", { class: "lb-row", style: "margin-top:8px;" }, [
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⧉ Duplicate", onClick: duplicateSelected }),
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "✕ Hapus", onClick: function () { removeElement(st.elements.indexOf(e)); } })
+          ]));
+          panel.appendChild(group("Edit Elemen", fields));
+        } else {
+          panel.appendChild(group("Edit Elemen", [el("p", { class: "pe-empty-note", text: "Klik sebuah elemen di canvas untuk mengeditnya. Klik dua kali teks untuk mengetik, atau gambar untuk upload." })]));
+        }
+
+        function after() { snapshot(); renderCanvas(); markSelection(); }
       }
+
+      function miniNum(labelText, value, onInput) {
+        var inp = el("input", { type: "text", value: String(value), onChange: function (ev) { var n = parseFloat(ev.target.value); if (!isNaN(n)) onInput(n); } });
+        return el("div", { class: "lb-field" }, [el("label", { text: labelText }), inp]);
+      }
+      function alignBtn(txt, fn) { return el("button", { class: "chip", type: "button", text: txt, onClick: fn }); }
+
+      // ---- element ops ----
+      function addElement(type) {
+        var e;
+        if (type === "text") e = te(20, 44, 60, 10, "Teks baru", { size: 6, color: "text", weight: 700 });
+        else if (type === "image") e = ie(25, 30, 50, 40, "");
+        else e = se(20, 46, 60, 4, "accent");
+        e.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        st.elements.push(e); selectedId = e.id;
+        snapshot(); buildPanel(); renderCanvas(); markSelection();
+      }
+      function duplicateSelected() {
+        var e = selEl(); if (!e) return;
+        var copy = JSON.parse(JSON.stringify(e));
+        copy.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        copy.x = clamp(e.x + 4, 0, 90); copy.y = clamp(e.y + 4, 0, 90);
+        st.elements.push(copy); selectedId = copy.id;
+        snapshot(); buildPanel(); renderCanvas(); markSelection(); toast("Elemen diduplikasi");
+      }
+      function removeElement(idx) {
+        if (idx < 0) return;
+        var removed = st.elements.splice(idx, 1)[0];
+        if (removed && removed.id === selectedId) selectedId = null;
+        snapshot(); buildPanel(); renderCanvas();
+      }
+      function reorder(idx, dir) {
+        var j = idx + dir;
+        if (j < 0 || j >= st.elements.length) return;
+        var tmp = st.elements[idx]; st.elements[idx] = st.elements[j]; st.elements[j] = tmp;
+        snapshot(); buildPanel(); renderCanvas(); markSelection();
+      }
+
       buildPanel();
 
-      var toolbar = el("div", { class: "lb-toolbar" }, [
-        el("div", { class: "lb-toolbar__group" }, [
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⟳ Reset",
-            onClick: function () { if (confirm("Reset poster ke awal? Teks dan gambar hilang.")) { st = defaultPosterState(tpl); buildPanel(); rebuild(); toast("Poster direset"); } } }),
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⤓ Ganti Template", onClick: function () { G.navigate("#/templates?type=poster"); } }),
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "✕ Hapus Gambar", onClick: function () { st.image = ""; rebuild(); } })
+      // ---- toolbar ----
+      var undoBtn, redoBtn, zoomLabel;
+      function updateUndoRedo() { if (undoBtn) undoBtn.disabled = hpos <= 0; if (redoBtn) redoBtn.disabled = hpos >= history.length - 1; }
+
+      undoBtn = el("button", { class: "pe-iconbtn", type: "button", title: "Undo", html: "↶", onClick: undo });
+      redoBtn = el("button", { class: "pe-iconbtn", type: "button", title: "Redo", html: "↷", onClick: redo });
+      zoomLabel = el("span", { class: "pe-zoom", text: "100%" });
+
+      var toolbar = el("div", { class: "pe-toolbar" }, [
+        el("div", { class: "pe-toolbar__group" }, [
+          undoBtn, redoBtn,
+          el("button", { class: "pe-iconbtn", type: "button", title: "Reset ke template", html: "⟳",
+            onClick: function () { if (confirm("Reset ke template awal? Semua perubahan hilang.")) { st = defaultPosterState(tpl); selectedId = null; history = []; hpos = -1; snapshot(); buildPanel(); renderCanvas(); toast("Direset"); } } }),
+          el("button", { class: "pe-iconbtn", type: "button", title: "Duplicate elemen terpilih", html: "⧉", onClick: duplicateSelected }),
+          el("button", { class: "pe-iconbtn", type: "button", title: "Ganti Template", html: "▦", onClick: function () { G.navigate("#/templates?type=poster"); } })
         ]),
-        el("div", { class: "lb-toolbar__group" }, [
+        el("div", { class: "pe-toolbar__group" }, [
+          el("button", { class: "pe-iconbtn", type: "button", title: "Zoom out", html: "−", onClick: function () { zoom = clamp(zoom - 0.1, 0.3, 2); applyZoom(); } }),
+          zoomLabel,
+          el("button", { class: "pe-iconbtn", type: "button", title: "Zoom in", html: "+", onClick: function () { zoom = clamp(zoom + 0.1, 0.3, 2); applyZoom(); } }),
+          el("button", { class: "pe-iconbtn", type: "button", title: "Reset zoom", html: "⊡", onClick: function () { zoom = 1; applyZoom(); } })
+        ]),
+        el("div", { class: "pe-toolbar__group" }, [
           el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "💾 Simpan", onClick: doSave }),
           el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "🖼 PNG", onClick: doPNG }),
           el("button", { class: "btn", type: "button", text: "⤑ PDF", onClick: doPDF })
         ])
       ]);
 
-      function doSave() { var rec = layoutStore.save({ id: loaded ? loaded.id : null, kind: "poster", title: (st.title || "Poster") + " — Poster", payload: st }); if (rec) { loaded = rec; toast("Poster tersimpan"); } }
-      function doPNG() { exportPNG(canvasNode, (st.title || "poster").replace(/\s+/g, "_")); }
-      function doPDF() { var fmt = POSTER_FORMATS[st.format]; exportPDF([canvasNode], fmt.pdf, fmt.w >= fmt.h ? "landscape" : "portrait", (st.title || "poster").replace(/\s+/g, "_")); }
+      function posterTitle() {
+        var t = st.elements.filter(function (e) { return e.type === "text"; })[0];
+        return (t && t.text) || "Poster";
+      }
+      function posterImageBytes() { var tot = 0; st.elements.forEach(function (e) { if (e.type === "image" && e.url) tot += e.url.length; }); return tot; }
 
-      var stage = el("div", { class: "lb-stage-wrap" }, [toolbar, scroll,
-        el("p", { class: "lb-note", text: "Export PDF/PNG memakai html2canvas + jsPDF (butuh internet untuk library). Hasil mengikuti tampilan canvas." })]);
+      function doSave() {
+        if (posterImageBytes() > 4.5 * 1024 * 1024) { toast("Gambar terlalu besar untuk disimpan. Perkecil gambar.", "error"); return; }
+        var rec = layoutStore.save({ id: loaded ? loaded.id : null, kind: "poster", title: posterTitle() + " — Poster", payload: st });
+        if (rec) { loaded = rec; toast("Poster tersimpan"); }
+      }
+      function withDeselect(cb) {
+        // Deselect (hide handles/outlines) and render the canvas at true 1:1 pixels
+        // so the export matches the design exactly, independent of zoom/fit.
+        var keep = selectedId; selectedId = null; renderCanvas();
+        requestAnimationFrame(function () {
+          var prevTransform = canvasNode.style.transform;
+          var prevHeight = canvasOuter.style.height;
+          canvasNode.style.transform = "none";
+          requestAnimationFrame(function () {
+            cb();
+            // restore view
+            canvasNode.style.transform = prevTransform;
+            canvasOuter.style.height = prevHeight;
+            selectedId = keep; renderCanvas();
+          });
+        });
+      }
+      function doPNG() { withDeselect(function () { exportPNG(canvasNode, posterTitle().replace(/\s+/g, "_")); }); }
+      function doPDF() { withDeselect(function () { var f = fmt(); exportPDF([canvasNode], f.pdf, f.w >= f.h ? "landscape" : "portrait", posterTitle().replace(/\s+/g, "_")); }); }
+
+      var stage = el("div", { class: "lb-stage-wrap" }, [toolbar, canvasOuter,
+        el("p", { class: "lb-note", text: "Zoom hanya tampilan — ekspor memakai ukuran asli (A4/A3/digital). Export PDF/PNG via html2canvas + jsPDF (butuh internet)." })]);
 
       page.appendChild(el("div", { class: "lb-shell" }, [panel, stage]));
-      rebuild();
+      renderCanvas();
+      snapshot(); // initial history entry
+      updateUndoRedo();
 
-      window.addEventListener("resize", onResize);
-      function onResize() { if (canvasNode) fitCanvas(canvasNode, POSTER_FORMATS[st.format]); }
-      page._cleanup = function () { window.removeEventListener("resize", onResize); };
+      window.addEventListener("resize", applyZoom);
+      page._cleanup = function () { window.removeEventListener("resize", applyZoom); };
       return page;
     }
 
@@ -862,23 +1175,28 @@
     }
     function miniPosterThumb(tpl) {
       var c = posterColors({ style: tpl.style });
-      var wrap = el("div", { class: "tpl-thumb", style: "background:" + c.bg + ";" });
-      var inner = el("div", { style: "position:absolute;inset:9%;display:flex;flex-direction:column;gap:6px;color:" + c.text + ";" });
-      if (tpl.layout === "image") {
-        inner.appendChild(thumbBox(c, "flex:1"));
-        inner.appendChild(el("div", { style: "font-family:" + c.head + ";font-size:18px;font-weight:800;color:" + c.accent + ";", text: "TITLE" }));
-      } else if (tpl.layout === "split") {
-        wrap.appendChild(el("div", { style: "position:absolute;inset:0;display:flex;" }, [thumbBox(c, "flex:1;border-radius:0"), el("div", { style: "flex:1;padding:10%;display:flex;flex-direction:column;justify-content:center;gap:5px;" }, [el("div", { style: "font-family:" + c.head + ";font-weight:800;font-size:15px;color:" + c.text, text: "Title" }), thumbLines(c)]) ]));
-        return wrap;
-      } else {
-        var align = tpl.layout === "centered" ? "center" : "flex-start";
-        inner.style.alignItems = align;
-        inner.style.justifyContent = "center";
-        inner.appendChild(el("div", { style: "font-family:" + c.head + ";font-size:22px;font-weight:800;line-height:1;color:" + c.text, text: "POSTER" }));
-        inner.appendChild(el("div", { style: "font-size:11px;color:" + c.accent + ";font-weight:700;", text: "subtitle" }));
-        inner.appendChild(thumbBox(c, "width:70%;height:34%"));
-      }
-      wrap.appendChild(inner);
+      var wrap = el("div", { class: "tpl-thumb", style: "background:" + c.bg + ";overflow:hidden;" });
+      // Render the real template elements in miniature so each thumbnail is truly distinct.
+      var els = tpl.make ? tpl.make() : [];
+      els.forEach(function (e) {
+        var node = el("div", { style: "position:absolute;left:" + e.x + "%;top:" + e.y + "%;width:" + e.w + "%;height:" + e.h + "%;overflow:hidden;" });
+        if (e.type === "text") {
+          var fam = e.family === "head" ? c.head : c.font;
+          var col = e.color === "accent" ? c.accent : (e.color && e.color.charAt(0) === "#" ? e.color : c.text);
+          node.style.fontFamily = fam; node.style.color = col;
+          node.style.fontWeight = e.weight; node.style.textAlign = e.align;
+          node.style.fontSize = Math.max(4, Math.round(e.size * 0.9)) + "px";
+          node.style.lineHeight = e.lh; node.style.whiteSpace = "pre-wrap";
+          node.textContent = e.text;
+        } else if (e.type === "image") {
+          node.style.background = "repeating-linear-gradient(45deg,#d7d7e0,#d7d7e0 4px,#e8e8ef 4px,#e8e8ef 8px)";
+          node.style.borderRadius = "2px";
+        } else if (e.type === "shape") {
+          node.style.background = e.color === "overlay" ? "linear-gradient(to top,rgba(0,0,0,.6),transparent)" : (e.color === "text" ? c.text : c.accent);
+          node.style.borderRadius = (e.radius || 0) + "px";
+        }
+        wrap.appendChild(node);
+      });
       return wrap;
     }
     function thumbBox(c, extra) { return el("div", { style: "background:" + hexFade(c.accent, c.text) + ";border-radius:4px;min-height:16px;" + (extra || "") }); }
