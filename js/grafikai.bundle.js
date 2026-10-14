@@ -403,7 +403,8 @@
     prompt: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6M12 19h8"/></svg>',
     projects: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
     portfolio: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5M9 13h8M9 16h5"/></svg>',
-    posterbuilder: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="8" r="2.5"/><path d="M8 15l2.5-2.5L13 15l2-1.5L17 16"/></svg>'
+    posterbuilder: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="8" r="2.5"/><path d="M8 15l2.5-2.5L13 15l2-1.5L17 16"/></svg>',
+    assistant: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a7 7 0 0 0-4 12.7V18h8v-2.3A7 7 0 0 0 12 3z"/><path d="M9 21h6M10 18v3M14 18v3"/></svg>'
   };
 
   function Landing() {
@@ -443,6 +444,7 @@
     { icon: "brief", title: "Design Brief Generator", desc: "Susun brief: tujuan, audiens, pesan, gaya visual.", href: "#/workspace?tab=brief" },
     { icon: "mood", title: "Creative Moodboard", desc: "Inspirasi visual berdasarkan konsep.", href: "#/workspace?tab=mood" },
     { icon: "prompt", title: "Prompt Generator", desc: "Buat prompt AI untuk gambar/referensi.", href: "#/workspace?tab=prompt" },
+    { icon: "assistant", title: "AI Creative Assistant", desc: "Brief lengkap, 3 konsep, palet, font, layout, prompt & checklist dari input kamu.", href: "#/assistant" },
     { icon: "portfolio", title: "Portfolio Layout Builder", desc: "Susun layout portofolio DKV, edit visual, export PDF.", href: "#/portfolio" },
     { icon: "posterbuilder", title: "Poster Design Editor", desc: "Editor interaktif: geser elemen, layer, undo/redo, zoom, export PDF/PNG.", href: "#/poster-builder" },
     { icon: "mood", title: "Template Gallery", desc: "6 template poster & 6 portofolio siap pakai.", href: "#/templates?type=portfolio" },
@@ -771,6 +773,7 @@
       case "Brief": return '<p class="muted">' + escapeHtml((d.objective || "").slice(0, 120)) + "…</p>";
       case "Moodboard": return '<p class="muted">' + (d.keywords || []).map(escapeHtml).join(", ") + "</p>";
       case "Prompt": return '<p class="muted">' + escapeHtml((d.prompt || "").slice(0, 130)) + "…</p>";
+      case "Assistant": return '<p class="muted">' + escapeHtml(((d.result && d.result.brief) || "").slice(0, 130)) + "…</p>";
       default: return '<p class="muted">Proyek tersimpan.</p>';
     }
   }
@@ -784,6 +787,7 @@
       case "Brief": return briefToText(d);
       case "Moodboard": return p.title + "\nKata kunci: " + (d.keywords || []).join(", ") + "\nPalet: " + (d.palette || []).join(", ");
       case "Prompt": return p.title + "\nPrompt: " + d.prompt + "\nNegative: " + d.negative;
+      case "Assistant": return p.title + "\n" + ((d.result && d.result.brief) || "") + "\n\nPrompt: " + ((d.result && d.result.prompt && d.result.prompt.positive) || "");
       default: return p.title;
     }
   }

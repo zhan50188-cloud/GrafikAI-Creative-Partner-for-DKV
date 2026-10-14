@@ -40,6 +40,7 @@ lalu buka `http://localhost:8080`. Untuk memakai versi modul, ubah di `index.htm
 | **Landing** | Hero "Your Creative Mind, Amplified by AI" + tombol Start Creating |
 | **Dashboard** | Semua fitur dalam bentuk card |
 | **AI Workspace** | Idea Generator, Poster Concept Maker, Design Brief, Moodboard, Prompt Generator |
+| **AI Creative Assistant** | 8 input → brief, 3 konsep, hierarki, palet+alasan, font, layout, prompt AI, checklist. Demo lokal; opsional backend aman (`/api/assistant`) |
 | **Portfolio Builder** | 6 template DKV, kelola halaman (tambah/hapus/urut), case study, multi-gambar, export PDF |
 | **Poster Editor** | Editor elemen interaktif: 8 template, drag/select/resize, layer, undo/redo, duplicate, zoom, export PDF/PNG |
 | **Template Gallery** | 6 template poster + 6 portofolio, Use/Customize |
@@ -60,7 +61,10 @@ GrafikAi/
 │  ├─ generators.js           # mesin demo: ide, poster, palet, font, brief, moodboard, prompt
 │  ├─ pages.js                # render tiap halaman
 │  ├─ layout-builder.js       # Portfolio & Poster builder, template gallery, export PDF/PNG
+│  ├─ assistant.js            # AI Creative Assistant (demo lokal + jalur backend aman)
 │  └─ app.js                  # hash router + wiring navigasi
+├─ api/
+│  └─ assistant.example.js    # CONTOH backend serverless (key via env, bukan di frontend)
 └─ README.md
 ```
 
