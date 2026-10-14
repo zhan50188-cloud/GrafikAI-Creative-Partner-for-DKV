@@ -61,7 +61,9 @@
       Editorial: { font: "'Lato', Georgia, serif", head: "'Playfair Display', Georgia, serif", bg: "#faf7f2", text: "#211c17", accent: "#9a7b4f", headWeight: 700 },
       Modern: { font: "'Inter', sans-serif", head: "'Space Grotesk', sans-serif", bg: "#0f0f14", text: "#f4f2f8", accent: "#a78bfa", headWeight: 600 },
       Creative: { font: "'Poppins', sans-serif", head: "'Poppins', sans-serif", bg: "#fff5f7", text: "#2a1a2e", accent: "#e5366f", headWeight: 700 },
-      "Swiss Design": { font: "'Helvetica Neue', Arial, sans-serif", head: "'Archivo Black', Arial, sans-serif", bg: "#ffffff", text: "#111111", accent: "#e3002b", headWeight: 900 }
+      "Swiss Design": { font: "'Helvetica Neue', Arial, sans-serif", head: "'Archivo Black', Arial, sans-serif", bg: "#ffffff", text: "#111111", accent: "#e3002b", headWeight: 900 },
+      Branding: { font: "'Inter', sans-serif", head: "'Space Grotesk', sans-serif", bg: "#f6f5f2", text: "#1a1a1a", accent: "#6d28d9", headWeight: 700 },
+      Photography: { font: "'Inter', sans-serif", head: "'Inter', sans-serif", bg: "#0b0b0b", text: "#f2f2f2", accent: "#f2f2f2", headWeight: 600 }
     };
     var POSTER_STYLES = {
       Minimalist: { font: "'Inter', sans-serif", head: "'Inter', sans-serif", bg: "#f4f4f6", text: "#141414", accent: "#8b5cf6", headWeight: 700 },
@@ -254,45 +256,58 @@
     /* =========================================================
        PORTFOLIO BUILDER
        ========================================================= */
+    // 6 DKV-focused templates. Each defines a style + a page blueprint.
     var PORTFOLIO_TEMPLATES = [
-      { id: "pf-min-grid", name: "Clean Grid", cat: "Minimalist", style: "Minimalist", layout: "grid", pages: 5 },
-      { id: "pf-edi-split", name: "Editorial Split", cat: "Editorial", style: "Editorial", layout: "split", pages: 5 },
-      { id: "pf-mod-img", name: "Dark Showcase", cat: "Modern", style: "Modern", layout: "image", pages: 5 },
-      { id: "pf-cre-type", name: "Creative Type", cat: "Creative", style: "Creative", layout: "typography", pages: 3 },
-      { id: "pf-swiss-grid", name: "Swiss Grid", cat: "Swiss Design", style: "Swiss Design", layout: "grid", pages: 8 },
-      { id: "pf-min-type", name: "Quiet Type", cat: "Minimalist", style: "Minimalist", layout: "typography", pages: 3 }
+      { id: "pf-minimalist", name: "Minimalist Portfolio", cat: "Minimalist", style: "Minimalist", thumb: "type", blueprint: ["cover", "about", "skills", "project", "gallery", "contact"] },
+      { id: "pf-editorial", name: "Editorial Portfolio", cat: "Editorial", style: "Editorial", thumb: "split", blueprint: ["cover", "about", "project", "process", "gallery", "contact"] },
+      { id: "pf-swiss", name: "Swiss Grid Portfolio", cat: "Swiss Design", style: "Swiss Design", thumb: "grid", blueprint: ["cover", "about", "skills", "project", "project", "contact"] },
+      { id: "pf-creative", name: "Creative Experimental", cat: "Creative", style: "Creative", thumb: "image", blueprint: ["cover", "about", "gallery", "project", "contact"] },
+      { id: "pf-branding", name: "Branding Case Study", cat: "Branding", style: "Branding", thumb: "split", blueprint: ["cover", "about", "project", "process", "gallery", "contact"] },
+      { id: "pf-photo", name: "Photography Portfolio", cat: "Photography", style: "Photography", thumb: "grid", blueprint: ["cover", "gallery", "gallery", "about", "contact"] }
     ];
 
-    var PAGE_TYPES = ["cover", "about", "showcase", "process", "contact"];
-    function pageTypeLabel(t) {
-      return { cover: "Cover", about: "About Me", showcase: "Project Showcase", process: "Design Process", contact: "Contact" }[t] || t;
+    // Page type registry: label, how many image slots, default layout, allowed layouts
+    var PAGE_META = {
+      cover:   { label: "Cover", slots: 1, layout: "centered", layouts: ["centered", "image", "split"] },
+      about:   { label: "About Me", slots: 1, layout: "split", layouts: ["split", "stacked", "text"] },
+      skills:  { label: "Skills", slots: 0, layout: "list", layouts: ["list", "grid"] },
+      project: { label: "Project Case Study", slots: 3, layout: "casestudy", layouts: ["casestudy", "grid", "image", "split"] },
+      gallery: { label: "Gallery", slots: 6, layout: "grid3", layouts: ["grid3", "grid2", "masonry"] },
+      process: { label: "Design Process", slots: 3, layout: "steps", layouts: ["steps", "timeline"] },
+      contact: { label: "Contact", slots: 0, layout: "centered", layouts: ["centered", "split"] }
+    };
+    var PAGE_ADD_TYPES = ["cover", "about", "skills", "project", "gallery", "process", "contact"];
+    function pageTypeLabel(t) { return (PAGE_META[t] && PAGE_META[t].label) || t; }
+
+    function makePage(type) {
+      var meta = PAGE_META[type] || PAGE_META.project;
+      var defaults = {
+        cover: { title: "Nama Desainer", subtitle: "Desain Komunikasi Visual", kicker: "PORTFOLIO" },
+        about: { title: "About Me", body: "Saya mahasiswa DKV yang tertarik pada branding dan desain editorial. Deskripsikan minat, pengalaman, dan tujuanmu di sini.", kicker: "" },
+        skills: { title: "Skills", skills: "Branding\nTypography\nLayout Design\nIllustration\nUI Design\nPhotography" },
+        project: { title: "Judul Proyek", role: "Peran: Desainer Grafis · 2024", challenge: "Tantangan: jelaskan masalah atau brief yang harus diselesaikan.", solution: "Solusi: pendekatan dan keputusan desain yang kamu ambil.", result: "Hasil: dampak atau capaian dari karya ini." },
+        gallery: { title: "Gallery", caption: "Kumpulan karya terpilih." },
+        process: { title: "Design Process", s1: "Riset", s2: "Konsep", s3: "Eksekusi", d1: "Kumpulkan referensi & insight.", d2: "Kembangkan arah visual.", d3: "Finalisasi & produksi." },
+        contact: { title: "Let's Connect", email: "email@contoh.com", phone: "0812-xxxx-xxxx", social: "@username · behance.net/username" }
+      }[type] || {};
+      return {
+        type: type, layout: meta.layout,
+        margin: 9, imgSize: 100,
+        images: new Array(meta.slots).fill(""),
+        fields: defaults
+      };
     }
-    function buildPageSequence(count) {
-      // cover, about, then showcase/process repeated, contact last
-      var seq = ["cover", "about"];
-      var middle = count - 3; // minus cover, about, contact
-      for (var i = 0; i < middle; i++) { seq.push(i % 2 === 0 ? "showcase" : "process"); }
-      seq.push("contact");
-      return seq.slice(0, count);
-    }
+
+    function blueprintToPages(bp) { return (bp || ["cover", "about", "project", "contact"]).map(function (t) { return makePage(t); }); }
 
     function defaultPortfolioState(tpl) {
       return {
         kind: "portfolio",
         format: "a4p",
         style: tpl ? tpl.style : "Minimalist",
-        layout: tpl ? tpl.layout : "grid",
-        pageCount: tpl ? tpl.pages : 5,
         titleSize: 44,
-        spacing: 28,
-        bg: null, text: null, accent: null, // null = use style default
-        designer: "Nama Desainer",
-        major: "Desain Komunikasi Visual",
-        about: "Deskripsi singkat tentang diri dan minat desain kamu.",
-        projectTitle: "Judul Proyek",
-        contactEmail: "email@contoh.com",
-        contactPhone: "0812-xxxx-xxxx",
-        images: {} // key "pageIndex:slotIndex" -> dataURL
+        bg: null, text: null, accent: null,
+        pages: blueprintToPages(tpl ? tpl.blueprint : ["cover", "about", "skills", "project", "gallery", "contact"])
       };
     }
 
@@ -301,13 +316,20 @@
       return { bg: st.bg || s.bg, text: st.text || s.text, accent: st.accent || s.accent, font: s.font, head: s.head, hw: s.headWeight };
     }
 
-    function renderPortfolioPage(st, pageType, pageIndex) {
+    // Estimate total image memory to warn users
+    function portfolioImageBytes(st) {
+      var total = 0;
+      (st.pages || []).forEach(function (p) { (p.images || []).forEach(function (u) { if (u) total += u.length; }); });
+      return total; // base64 chars ≈ bytes
+    }
+
+    function renderPortfolioPage(st, pg, pageIndex) {
       var c = portfolioColors(st);
       var fmt = PORTFOLIO_FORMATS[st.format];
-      var pad = Math.round(fmt.w * 0.09);
+      var pad = Math.round(fmt.w * ((pg.margin || 9) / 100));
       var canvas = el("div", { class: "lb-canvas", style:
         "width:" + fmt.w + "px;height:" + fmt.h + "px;background:" + c.bg + ";color:" + c.text +
-        ";font-family:" + c.font + ";padding:" + pad + "px;box-sizing:border-box;display:flex;flex-direction:column;gap:" + st.spacing + "px;" });
+        ";font-family:" + c.font + ";padding:" + pad + "px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px;" });
 
       function editable(tag, text, styleStr, onCommit) {
         var n = el(tag, { class: "lb-el", contenteditable: "true", style: styleStr, text: text });
@@ -316,56 +338,157 @@
         return n;
       }
       function heading(text, size, onCommit) {
-        return editable("h1", text, "font-family:" + c.head + ";font-weight:" + c.hw + ";font-size:" + size + "px;line-height:1.05;margin:0;color:" + c.text + ";", onCommit);
+        return editable("h1", text, "font-family:" + c.head + ";font-weight:" + c.hw + ";font-size:" + size + "px;line-height:1.06;margin:0;color:" + c.text + ";", onCommit);
       }
-      function accentBar() { return el("div", { style: "width:60px;height:6px;background:" + c.accent + ";border-radius:3px;" }); }
+      function label(text) { return el("div", { style: "font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:" + c.accent + ";font-weight:700;" }, [text]); }
+      function accentBar() { return el("div", { style: "width:54px;height:5px;background:" + c.accent + ";border-radius:3px;" }); }
+      function fset(key, val) { pg.fields[key] = val; }
 
-      function imageAt(slotIndex, styleStr) {
-        var key = pageIndex + ":" + slotIndex;
-        return imgSlot(function () { return st.images[key] || ""; }, function (v) { if (v) st.images[key] = v; else delete st.images[key]; }, styleStr + "border-radius:6px;");
+      function img(slotIndex, styleStr) {
+        var sizePct = (pg.imgSize || 100);
+        var wrap = el("div", { style: "overflow:hidden;" + (styleStr || "") });
+        var slot = imgSlot(
+          function () { return pg.images[slotIndex] || ""; },
+          function (v) { pg.images[slotIndex] = v || ""; },
+          "width:100%;height:100%;border-radius:4px;" + (sizePct !== 100 ? "transform:scale(" + (sizePct / 100) + ");transform-origin:center;" : "")
+        );
+        wrap.appendChild(slot);
+        return wrap;
       }
 
-      if (pageType === "cover") {
-        canvas.style.justifyContent = "center";
-        canvas.appendChild(accentBar());
-        canvas.appendChild(heading(st.designer, st.titleSize, function (v) { st.designer = v; }));
-        canvas.appendChild(editable("div", st.major, "font-size:18px;opacity:.75;", function (v) { st.major = v; }));
-        canvas.appendChild(editable("div", "PORTFOLIO", "font-size:14px;letter-spacing:.3em;color:" + c.accent + ";font-weight:600;margin-top:12px;"));
-      } else if (pageType === "about") {
-        canvas.appendChild(heading("About Me", Math.round(st.titleSize * 0.72), null));
-        canvas.appendChild(accentBar());
-        var aboutRow = el("div", { style: "display:flex;gap:" + st.spacing + "px;flex:1;" + (st.layout === "split" ? "" : "flex-direction:column;") });
-        aboutRow.appendChild(imageAt(0, "flex:1;min-height:160px;"));
-        aboutRow.appendChild(editable("div", st.about, "flex:1;font-size:16px;line-height:1.7;", function (v) { st.about = v; }));
-        canvas.appendChild(aboutRow);
-      } else if (pageType === "showcase") {
-        canvas.appendChild(heading(st.projectTitle, Math.round(st.titleSize * 0.72), function (v) { st.projectTitle = v; }));
-        canvas.appendChild(accentBar());
-        var body = el("div", { style: "flex:1;display:grid;gap:" + st.spacing + "px;" });
-        if (st.layout === "grid") { body.style.gridTemplateColumns = "1fr 1fr"; body.appendChild(imageAt(0, "")); body.appendChild(imageAt(1, "")); body.appendChild(imageAt(2, "")); body.appendChild(imageAt(3, "")); }
-        else if (st.layout === "split") { body.style.gridTemplateColumns = "1.4fr 1fr"; body.appendChild(imageAt(0, "")); body.appendChild(el("div", {}, [editable("div", "Deskripsi proyek, peran kamu, dan hasilnya.", "font-size:14px;line-height:1.7;")])); }
-        else if (st.layout === "image") { body.appendChild(imageAt(0, "min-height:300px;")); }
-        else { body.appendChild(el("div", { style: "display:flex;align-items:center;justify-content:center;flex:1;" }, [editable("div", "Konsep & narasi proyek sebagai elemen utama.", "font-size:26px;font-family:" + c.head + ";line-height:1.3;max-width:80%;text-align:center;")])); }
-        canvas.appendChild(body);
-      } else if (pageType === "process") {
-        canvas.appendChild(heading("Design Process", Math.round(st.titleSize * 0.72), null));
-        canvas.appendChild(accentBar());
-        var steps = el("div", { style: "flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:" + st.spacing + "px;" });
-        ["Riset", "Konsep", "Eksekusi"].forEach(function (s, idx) {
-          steps.appendChild(el("div", { style: "display:flex;flex-direction:column;gap:10px;" }, [
-            el("div", { style: "font-family:" + c.head + ";font-size:28px;color:" + c.accent + ";font-weight:" + c.hw + ";", text: "0" + (idx + 1) }),
-            editable("div", s, "font-weight:700;font-size:16px;"),
-            imageAt(idx, "flex:1;min-height:120px;")
+      var f = pg.fields || {};
+      var L = pg.layout;
+
+      if (pg.type === "cover") {
+        if (L === "image") {
+          canvas.style.padding = "0";
+          canvas.appendChild(img(0, "position:absolute;inset:0;width:100%;height:100%;"));
+          canvas.appendChild(el("div", { style: "position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,.08));" }));
+          canvas.appendChild(el("div", { style: "position:absolute;left:0;right:0;bottom:0;padding:" + pad + "px;color:#fff;display:flex;flex-direction:column;gap:8px;" }, [
+            editable("h1", f.title, "font-family:" + c.head + ";font-weight:" + c.hw + ";font-size:" + st.titleSize + "px;margin:0;color:#fff;", function (v) { fset("title", v); }),
+            editable("div", f.subtitle, "font-size:18px;opacity:.9;", function (v) { fset("subtitle", v); })
+          ]));
+        } else if (L === "split") {
+          canvas.style.padding = "0";
+          canvas.appendChild(el("div", { style: "display:flex;height:100%;" }, [
+            el("div", { style: "flex:1;padding:" + pad + "px;display:flex;flex-direction:column;gap:12px;justify-content:center;" }, [
+              label(f.kicker || "PORTFOLIO"), accentBar(),
+              editable("h1", f.title, "font-family:" + c.head + ";font-weight:" + c.hw + ";font-size:" + st.titleSize + "px;margin:0;", function (v) { fset("title", v); }),
+              editable("div", f.subtitle, "font-size:18px;opacity:.75;", function (v) { fset("subtitle", v); })
+            ]),
+            el("div", { style: "flex:1;" }, [img(0, "width:100%;height:100%;")])
+          ]));
+        } else {
+          canvas.style.justifyContent = "center";
+          canvas.appendChild(accentBar());
+          canvas.appendChild(heading(f.title, st.titleSize, function (v) { fset("title", v); }));
+          canvas.appendChild(editable("div", f.subtitle, "font-size:18px;opacity:.75;", function (v) { fset("subtitle", v); }));
+          canvas.appendChild(editable("div", f.kicker || "PORTFOLIO", "font-size:13px;letter-spacing:.3em;color:" + c.accent + ";font-weight:700;margin-top:10px;", function (v) { fset("kicker", v); }));
+        }
+      } else if (pg.type === "about") {
+        canvas.appendChild(label("About")); canvas.appendChild(heading(f.title, Math.round(st.titleSize * 0.68), function (v) { fset("title", v); }));
+        if (L === "text") {
+          canvas.appendChild(editable("div", f.body, "font-size:17px;line-height:1.8;max-width:80%;", function (v) { fset("body", v); }));
+        } else {
+          var row = el("div", { style: "display:flex;gap:24px;flex:1;" + (L === "stacked" ? "flex-direction:column;" : "") });
+          row.appendChild(img(0, "flex:1;min-height:160px;"));
+          row.appendChild(editable("div", f.body, "flex:1;font-size:16px;line-height:1.75;", function (v) { fset("body", v); }));
+          canvas.appendChild(row);
+        }
+      } else if (pg.type === "skills") {
+        canvas.appendChild(label("Expertise")); canvas.appendChild(heading(f.title, Math.round(st.titleSize * 0.68), function (v) { fset("title", v); }));
+        var items = (f.skills || "").split("\n").filter(function (x) { return x.trim(); });
+        var box = el("div", { style: L === "grid" ? "display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:start;" : "display:flex;flex-direction:column;gap:12px;flex:1;" });
+        items.forEach(function (s) {
+          box.appendChild(el("div", { style: "display:flex;align-items:center;gap:10px;font-size:17px;" }, [
+            el("span", { style: "width:8px;height:8px;border-radius:50%;background:" + c.accent + ";flex:0 0 auto;" }), el("span", { text: s })
           ]));
         });
-        canvas.appendChild(steps);
-      } else if (pageType === "contact") {
-        canvas.style.justifyContent = "center";
-        canvas.appendChild(heading("Let's Connect", Math.round(st.titleSize * 0.82), null));
-        canvas.appendChild(accentBar());
-        canvas.appendChild(editable("div", st.contactEmail, "font-size:18px;", function (v) { st.contactEmail = v; }));
-        canvas.appendChild(editable("div", st.contactPhone, "font-size:18px;", function (v) { st.contactPhone = v; }));
-        canvas.appendChild(editable("div", st.designer, "font-size:14px;opacity:.6;margin-top:10px;", function (v) { st.designer = v; }));
+        canvas.appendChild(box);
+        canvas.appendChild(el("div", { class: "lb-el", contenteditable: "true", style: "font-size:11px;opacity:.5;",
+          text: "(Edit daftar skill di panel kiri, satu per baris)" }));
+      } else if (pg.type === "project") {
+        canvas.appendChild(label("Case Study")); canvas.appendChild(heading(f.title, Math.round(st.titleSize * 0.68), function (v) { fset("title", v); }));
+        canvas.appendChild(editable("div", f.role, "font-size:13px;opacity:.65;", function (v) { fset("role", v); }));
+        if (L === "image") {
+          canvas.appendChild(img(0, "flex:1;min-height:200px;"));
+          canvas.appendChild(editable("div", f.solution, "font-size:15px;line-height:1.7;", function (v) { fset("solution", v); }));
+        } else if (L === "grid") {
+          canvas.appendChild(el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;" }, [img(0, ""), img(1, ""), img(2, ""), el("div", {}, [editable("div", f.result, "font-size:14px;line-height:1.7;", function (v) { fset("result", v); })])]));
+        } else if (L === "split") {
+          canvas.appendChild(el("div", { style: "display:grid;grid-template-columns:1.3fr 1fr;gap:20px;flex:1;" }, [
+            img(0, ""),
+            el("div", { style: "display:flex;flex-direction:column;gap:12px;" }, [
+              editable("div", f.challenge, "font-size:14px;line-height:1.6;", function (v) { fset("challenge", v); }),
+              editable("div", f.solution, "font-size:14px;line-height:1.6;", function (v) { fset("solution", v); }),
+              editable("div", f.result, "font-size:14px;line-height:1.6;", function (v) { fset("result", v); })
+            ])
+          ]));
+        } else { // casestudy — hero image + 3 labelled blocks
+          canvas.appendChild(img(0, "width:100%;height:38%;"));
+          var cs = el("div", { style: "display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;" });
+          [["Tantangan", "challenge"], ["Solusi", "solution"], ["Hasil", "result"]].forEach(function (p) {
+            cs.appendChild(el("div", { style: "display:flex;flex-direction:column;gap:8px;" }, [
+              el("div", { style: "font-weight:700;font-size:13px;color:" + c.accent + ";letter-spacing:.05em;", text: p[0] }),
+              editable("div", f[p[1]], "font-size:13px;line-height:1.6;", function (v) { fset(p[1], v); })
+            ]));
+          });
+          canvas.appendChild(cs);
+        }
+      } else if (pg.type === "gallery") {
+        canvas.appendChild(label("Works")); canvas.appendChild(heading(f.title, Math.round(st.titleSize * 0.6), function (v) { fset("title", v); }));
+        var cols = L === "grid2" ? 2 : (L === "masonry" ? 3 : 3);
+        var grid = el("div", { style: "display:grid;grid-template-columns:repeat(" + cols + ",1fr);gap:12px;flex:1;" + (L === "masonry" ? "grid-auto-rows:1fr;" : "") });
+        var n = (PAGE_META.gallery.slots);
+        for (var i = 0; i < n; i++) {
+          var span = (L === "masonry" && (i === 0 || i === 3)) ? "grid-row:span 2;" : "";
+          grid.appendChild(img(i, span + "min-height:90px;"));
+        }
+        canvas.appendChild(grid);
+      } else if (pg.type === "process") {
+        canvas.appendChild(label("How I Work")); canvas.appendChild(heading(f.title, Math.round(st.titleSize * 0.68), function (v) { fset("title", v); }));
+        if (L === "timeline") {
+          var tl = el("div", { style: "display:flex;flex-direction:column;gap:18px;flex:1;" });
+          [["1", "s1", "d1"], ["2", "s2", "d2"], ["3", "s3", "d3"]].forEach(function (p, i) {
+            tl.appendChild(el("div", { style: "display:flex;gap:14px;align-items:flex-start;" }, [
+              el("div", { style: "font-family:" + c.head + ";font-size:26px;color:" + c.accent + ";font-weight:" + c.hw + ";", text: "0" + p[0] }),
+              el("div", {}, [editable("div", f[p[1]], "font-weight:700;font-size:16px;", function (v) { fset(p[1], v); }), editable("div", f[p[2]], "font-size:13px;opacity:.75;margin-top:4px;", function (v) { fset(p[2], v); })]),
+              img(i, "margin-left:auto;width:120px;height:70px;")
+            ]));
+          });
+          canvas.appendChild(tl);
+        } else {
+          var steps = el("div", { style: "display:grid;grid-template-columns:repeat(3,1fr);gap:18px;flex:1;" });
+          [["01", "s1", "d1"], ["02", "s2", "d2"], ["03", "s3", "d3"]].forEach(function (p, i) {
+            steps.appendChild(el("div", { style: "display:flex;flex-direction:column;gap:8px;" }, [
+              el("div", { style: "font-family:" + c.head + ";font-size:26px;color:" + c.accent + ";font-weight:" + c.hw + ";", text: p[0] }),
+              editable("div", f[p[1]], "font-weight:700;font-size:15px;", function (v) { fset(p[1], v); }),
+              editable("div", f[p[2]], "font-size:12px;opacity:.75;", function (v) { fset(p[2], v); }),
+              img(i, "flex:1;min-height:90px;")
+            ]));
+          });
+          canvas.appendChild(steps);
+        }
+      } else if (pg.type === "contact") {
+        if (L === "split") {
+          canvas.style.padding = "0";
+          canvas.appendChild(el("div", { style: "display:flex;height:100%;" }, [
+            el("div", { style: "flex:1;background:" + c.accent + ";" }),
+            el("div", { style: "flex:2;padding:" + pad + "px;display:flex;flex-direction:column;gap:12px;justify-content:center;" }, [
+              heading(f.title, Math.round(st.titleSize * 0.7), function (v) { fset("title", v); }),
+              editable("div", f.email, "font-size:17px;", function (v) { fset("email", v); }),
+              editable("div", f.phone, "font-size:17px;", function (v) { fset("phone", v); }),
+              editable("div", f.social, "font-size:14px;opacity:.7;", function (v) { fset("social", v); })
+            ])
+          ]));
+        } else {
+          canvas.style.justifyContent = "center"; canvas.style.textAlign = "center";
+          canvas.appendChild(heading(f.title, Math.round(st.titleSize * 0.82), function (v) { fset("title", v); }));
+          var bar = accentBar(); bar.style.margin = "0 auto"; canvas.appendChild(bar);
+          canvas.appendChild(editable("div", f.email, "font-size:18px;", function (v) { fset("email", v); }));
+          canvas.appendChild(editable("div", f.phone, "font-size:18px;", function (v) { fset("phone", v); }));
+          canvas.appendChild(editable("div", f.social, "font-size:14px;opacity:.65;", function (v) { fset("social", v); }));
+        }
       }
       return canvas;
     }
@@ -374,56 +497,42 @@
       var tpl = params && params.tpl ? PORTFOLIO_TEMPLATES.filter(function (t) { return t.id === params.tpl; })[0] : null;
       var loaded = params && params.load ? layoutStore.get(params.load) : null;
       var st = loaded ? loaded.payload : defaultPortfolioState(tpl);
-      if (!st.images) st.images = {};
+      if (!st.pages || !st.pages.length) st.pages = defaultPortfolioState(tpl).pages;
+      var selected = 0;
 
       var page = el("div", { class: "lb" });
-      page.appendChild(headerBlock("Portfolio Layout Builder", "Susun portofolio DKV secara visual. Klik teks untuk mengedit, klik kotak gambar untuk mengunggah karya."));
+      page.appendChild(headerBlock("Portfolio Layout Builder", "Portofolio profesional untuk siswa DKV. Klik teks untuk mengedit, klik kotak gambar untuk unggah karya. Atur halaman & layout dari panel kiri."));
 
       var pagesWrap = el("div", { class: "lb-pages" });
       var canvasNodes = [];
 
       function rebuild() {
         pagesWrap.innerHTML = ""; canvasNodes = [];
-        var seq = buildPageSequence(st.pageCount);
         var fmt = PORTFOLIO_FORMATS[st.format];
-        seq.forEach(function (ptype, idx) {
+        st.pages.forEach(function (pg, idx) {
           var scroll = el("div", { class: "lb-scroll" });
-          var canvas = renderPortfolioPage(st, ptype, idx);
+          var canvas = renderPortfolioPage(st, pg, idx);
           scroll.appendChild(canvas);
-          pagesWrap.appendChild(el("div", { style: "width:100%;" }, [
-            el("div", { class: "lb-page-label", text: "Hal " + (idx + 1) + " · " + pageTypeLabel(ptype) }),
-            scroll
-          ]));
+          var labelRow = el("div", { class: "row-between", style: "width:100%;" }, [
+            el("div", { class: "lb-page-label", text: "Hal " + (idx + 1) + " · " + pageTypeLabel(pg.type) + (idx === selected ? "  ← dipilih" : "") }),
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "Pilih", onClick: function () { selected = idx; buildPanel(); rebuild(); } })
+          ]);
+          pagesWrap.appendChild(el("div", { style: "width:100%;" + (idx === selected ? "outline:2px solid var(--purple);outline-offset:6px;border-radius:8px;" : ""), onClick: function () { if (selected !== idx) { selected = idx; buildPanel(); rebuild(); } } }, [labelRow, scroll]));
           canvasNodes.push(canvas);
           requestAnimationFrame(function () { fitCanvas(canvas, fmt); });
         });
       }
 
-      // ---- settings panel ----
+      // ---------- settings panel ----------
       var panel = el("div", { class: "lb-panel" });
       function buildPanel() {
         panel.innerHTML = "";
+
+        // Global settings
         panel.appendChild(group("Format", [segmented(
           Object.keys(PORTFOLIO_FORMATS).map(function (k) { return { value: k, label: PORTFOLIO_FORMATS[k].label }; }),
           st.format, function (v) { st.format = v; rebuild(); })]));
-        panel.appendChild(group("Gaya", [segmented(Object.keys(PORTFOLIO_STYLES), st.style, function (v) { st.style = v; buildPanel(); rebuild(); })]));
-        panel.appendChild(group("Jumlah Halaman", [segmented(
-          [{ value: 3, label: "3" }, { value: 5, label: "5" }, { value: 8, label: "8" }, { value: 10, label: "10" }],
-          st.pageCount, function (v) { st.pageCount = v; rebuild(); })]));
-        panel.appendChild(group("Layout Showcase", [segmented(
-          [{ value: "grid", label: "Grid" }, { value: "split", label: "Split" }, { value: "image", label: "Image" }, { value: "typography", label: "Type" }],
-          st.layout, function (v) { st.layout = v; rebuild(); })]));
-
-        panel.appendChild(group("Identitas", [
-          textField("Nama Desainer", st.designer, function (v) { st.designer = v; rebuild(); }),
-          textField("Jurusan", st.major, function (v) { st.major = v; rebuild(); }),
-          textField("Deskripsi Diri", st.about, function (v) { st.about = v; rebuild(); }, true),
-          textField("Judul Proyek", st.projectTitle, function (v) { st.projectTitle = v; rebuild(); })
-        ]));
-        panel.appendChild(group("Kontak", [
-          textField("Email", st.contactEmail, function (v) { st.contactEmail = v; rebuild(); }),
-          textField("Telepon", st.contactPhone, function (v) { st.contactPhone = v; rebuild(); })
-        ]));
+        panel.appendChild(group("Gaya", [segmented(Object.keys(PORTFOLIO_STYLES), st.style, function (v) { st.style = v; rebuild(); })]));
 
         var c = portfolioColors(st);
         panel.appendChild(group("Warna & Tipografi", [
@@ -431,18 +540,84 @@
           colorField("Teks", c.text, function (v) { st.text = v; rebuild(); }),
           colorField("Aksen", c.accent, function (v) { st.accent = v; rebuild(); }),
           rangeField("Ukuran Judul", st.titleSize, 28, 72, 1, function (v) { st.titleSize = v; rebuild(); }),
-          rangeField("Jarak Elemen", st.spacing, 10, 60, 1, function (v) { st.spacing = v; rebuild(); })
+          el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Reset Warna ke Gaya",
+            onClick: function () { st.bg = st.text = st.accent = null; buildPanel(); rebuild(); } })
         ]));
-        panel.appendChild(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Reset Warna ke Gaya",
-          onClick: function () { st.bg = st.text = st.accent = null; buildPanel(); rebuild(); } }));
+
+        // Page manager
+        var pm = el("div", {});
+        st.pages.forEach(function (pg, idx) {
+          var rowEl = el("div", { class: "lb-row", style: "align-items:center;gap:6px;margin-bottom:6px;" + (idx === selected ? "" : "opacity:.85;") }, [
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", style: "flex:1;justify-content:flex-start;" + (idx === selected ? "border-color:var(--purple);" : ""), text: (idx + 1) + ". " + pageTypeLabel(pg.type), onClick: function () { selected = idx; buildPanel(); rebuild(); } }),
+            el("button", { class: "chip", type: "button", title: "Naik", text: "↑", onClick: function () { movePage(idx, -1); } }),
+            el("button", { class: "chip", type: "button", title: "Turun", text: "↓", onClick: function () { movePage(idx, 1); } }),
+            el("button", { class: "chip", type: "button", title: "Hapus", text: "✕", onClick: function () { removePage(idx); } })
+          ]);
+          pm.appendChild(rowEl);
+        });
+        var addSel = el("select", {});
+        PAGE_ADD_TYPES.forEach(function (t) { addSel.appendChild(el("option", { value: t, text: pageTypeLabel(t) })); });
+        pm.appendChild(el("div", { class: "lb-row", style: "margin-top:8px;gap:6px;" }, [
+          addSel,
+          el("button", { class: "btn btn--sm", type: "button", text: "+ Tambah", onClick: function () { addPage(addSel.value); } })
+        ]));
+        panel.appendChild(group("Halaman (" + st.pages.length + ")", [pm]));
+
+        // Selected page editor
+        var pg = st.pages[selected];
+        if (pg) {
+          var meta = PAGE_META[pg.type];
+          var fields = [
+            el("div", { class: "section-label", style: "color:var(--purple-bright)", text: "Edit: Hal " + (selected + 1) + " · " + pageTypeLabel(pg.type) }),
+            segmented(meta.layouts.map(function (x) { return { value: x, label: x }; }), pg.layout, function (v) { pg.layout = v; rebuild(); }),
+            rangeField("Margin Halaman (%)", pg.margin, 4, 16, 1, function (v) { pg.margin = v; rebuild(); })
+          ];
+          if (meta.slots > 0) fields.push(rangeField("Ukuran Gambar (%)", pg.imgSize, 60, 130, 1, function (v) { pg.imgSize = v; rebuild(); }));
+          fields = fields.concat(pageFieldEditors(pg, rebuild));
+          panel.appendChild(group("Pengaturan Halaman", fields));
+        }
+      }
+
+      function pageFieldEditors(pg, refresh) {
+        var f = pg.fields, out = [];
+        function tf(labelText, key, ta) { out.push(textField(labelText, f[key], function (v) { f[key] = v; refresh(); }, ta)); }
+        if (pg.type === "cover") { tf("Judul / Nama", "title"); tf("Subjudul / Jurusan", "subtitle"); tf("Kicker", "kicker"); }
+        else if (pg.type === "about") { tf("Judul", "title"); tf("Deskripsi Diri", "body", true); }
+        else if (pg.type === "skills") { tf("Judul", "title"); tf("Daftar Skill (satu per baris)", "skills", true); }
+        else if (pg.type === "project") { tf("Judul Proyek", "title"); tf("Peran / Tahun", "role"); tf("Tantangan", "challenge", true); tf("Solusi", "solution", true); tf("Hasil", "result", true); }
+        else if (pg.type === "gallery") { tf("Judul", "title"); }
+        else if (pg.type === "process") { tf("Judul", "title"); tf("Langkah 1", "s1"); tf("Deskripsi 1", "d1"); tf("Langkah 2", "s2"); tf("Deskripsi 2", "d2"); tf("Langkah 3", "s3"); tf("Deskripsi 3", "d3"); }
+        else if (pg.type === "contact") { tf("Judul", "title"); tf("Email", "email"); tf("Telepon", "phone"); tf("Sosial", "social"); }
+        return out;
+      }
+
+      function addPage(type) {
+        if (st.pages.length >= 20) { toast("Maksimal 20 halaman.", "error"); return; }
+        st.pages.splice(selected + 1, 0, makePage(type));
+        selected = selected + 1;
+        buildPanel(); rebuild(); toast("Halaman ditambahkan");
+      }
+      function removePage(idx) {
+        if (st.pages.length <= 1) { toast("Minimal 1 halaman.", "error"); return; }
+        if (!confirm("Hapus halaman " + (idx + 1) + " (" + pageTypeLabel(st.pages[idx].type) + ")?")) return;
+        st.pages.splice(idx, 1);
+        if (selected >= st.pages.length) selected = st.pages.length - 1;
+        buildPanel(); rebuild(); toast("Halaman dihapus");
+      }
+      function movePage(idx, dir) {
+        var j = idx + dir;
+        if (j < 0 || j >= st.pages.length) return;
+        var tmp = st.pages[idx]; st.pages[idx] = st.pages[j]; st.pages[j] = tmp;
+        if (selected === idx) selected = j; else if (selected === j) selected = idx;
+        buildPanel(); rebuild();
       }
       buildPanel();
 
-      // ---- toolbar ----
+      // ---------- toolbar ----------
       var toolbar = el("div", { class: "lb-toolbar" }, [
         el("div", { class: "lb-toolbar__group" }, [
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⟳ Reset Layout",
-            onClick: function () { if (confirm("Reset ke pengaturan awal? Teks dan gambar akan hilang.")) { st = defaultPortfolioState(tpl); buildPanel(); rebuild(); toast("Layout direset"); } } }),
+          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⟳ Reset",
+            onClick: function () { if (confirm("Reset ke template awal? Semua teks & gambar hilang.")) { st = defaultPortfolioState(tpl); selected = 0; buildPanel(); rebuild(); toast("Portfolio direset"); } } }),
           el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⤓ Ganti Template", onClick: function () { G.navigate("#/templates?type=portfolio"); } })
         ]),
         el("div", { class: "lb-toolbar__group" }, [
@@ -452,17 +627,21 @@
       ]);
 
       function doSave() {
-        var rec = layoutStore.save({ id: loaded ? loaded.id : null, kind: "portfolio",
-          title: st.designer + " — Portfolio", payload: st });
+        var bytes = portfolioImageBytes(st);
+        if (bytes > 4.5 * 1024 * 1024) { toast("Gambar terlalu besar untuk disimpan (" + Math.round(bytes / 1048576) + "MB). Kurangi/perkecil gambar.", "error"); return; }
+        var name = (st.pages[0] && st.pages[0].fields.title) || "Portfolio";
+        var rec = layoutStore.save({ id: loaded ? loaded.id : null, kind: "portfolio", title: name + " — Portfolio", payload: st });
         if (rec) { loaded = rec; toast("Portfolio tersimpan"); }
       }
       function doExport() {
+        if (portfolioImageBytes(st) > 40 * 1024 * 1024) { toast("Terlalu banyak gambar besar — export bisa gagal. Perkecil gambar dulu.", "error"); return; }
         var fmt = PORTFOLIO_FORMATS[st.format];
-        exportPDF(canvasNodes, fmt.pdf, fmt.orient, (st.designer || "portfolio").replace(/\s+/g, "_"));
+        var name = ((st.pages[0] && st.pages[0].fields.title) || "portfolio").replace(/\s+/g, "_");
+        exportPDF(canvasNodes, fmt.pdf, fmt.orient, name);
       }
 
       var stage = el("div", { class: "lb-stage-wrap" }, [toolbar, pagesWrap,
-        el("p", { class: "lb-note", text: "Export PDF memakai html2canvas + jsPDF (butuh internet untuk memuat library). Satu halaman portofolio = satu halaman PDF." })]);
+        el("p", { class: "lb-note", text: "Export PDF memakai html2canvas + jsPDF (butuh internet untuk library). Setiap halaman portofolio = satu halaman PDF dengan format konsisten." })]);
 
       page.appendChild(el("div", { class: "lb-shell" }, [panel, stage]));
       rebuild();
@@ -673,9 +852,10 @@
       var inner = el("div", { style: "position:absolute;inset:10%;display:flex;flex-direction:column;gap:6px;color:" + c.text + ";font-family:" + c.head + ";" });
       inner.appendChild(el("div", { style: "width:40%;height:5px;background:" + c.accent + ";border-radius:3px;" }));
       inner.appendChild(el("div", { style: "font-size:13px;font-weight:800;line-height:1;", text: "Aa" }));
-      if (tpl.layout === "grid") { inner.appendChild(el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:4px;flex:1;" }, [thumbBox(c), thumbBox(c), thumbBox(c), thumbBox(c)])); }
-      else if (tpl.layout === "split") { inner.appendChild(el("div", { style: "display:flex;gap:4px;flex:1;" }, [thumbBox(c, "flex:1.3"), thumbLines(c)])); }
-      else if (tpl.layout === "image") { inner.appendChild(thumbBox(c, "flex:1")); }
+      var th = tpl.thumb || "grid";
+      if (th === "grid") { inner.appendChild(el("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:4px;flex:1;" }, [thumbBox(c), thumbBox(c), thumbBox(c), thumbBox(c)])); }
+      else if (th === "split") { inner.appendChild(el("div", { style: "display:flex;gap:4px;flex:1;" }, [thumbBox(c, "flex:1.3"), thumbLines(c)])); }
+      else if (th === "image") { inner.appendChild(thumbBox(c, "flex:1")); }
       else { inner.appendChild(el("div", { style: "flex:1;display:flex;align-items:center;", html: '<div style="font-family:' + c.head + ';font-size:22px;font-weight:800;color:' + c.accent + '">Type</div>' })); }
       wrap.appendChild(inner);
       return wrap;
