@@ -228,30 +228,156 @@
     var toHex = function (x) { return Math.round(255 * x).toString(16).padStart(2, "0"); };
     return ("#" + toHex(f(0)) + toHex(f(8)) + toHex(f(4))).toUpperCase();
   }
-  function baseHueFor(theme, sKey) {
-    var map = { futuristik: 265, elegan: 280, retro: 28, "pop-art": 350, natural: 120, minimalis: 210, brutalis: 0 };
-    if (map[sKey] != null) return map[sKey];
-    var h = 0, t = (theme || "x").toLowerCase();
-    for (var i = 0; i < t.length; i++) h = (h + t.charCodeAt(i) * 7) % 360;
-    return h;
+  /* ---------- Color keyword knowledge base ----------
+     Theme is the PRIMARY driver. Each keyword maps to one or more hues
+     (so multi-word themes like "senja pantai" blend warm sunset + sea blue),
+     plus optional saturation/lightness bias ("warm/bright/muted/dark"). */
+  var COLOR_KEYWORDS = [
+    // sunset / sky / warmth
+    { k: ["senja", "sunset", "matahari terbenam", "sore"], hues: [24, 14, 42], tone: "warm" },
+    { k: ["fajar", "sunrise", "pagi", "dawn"], hues: [38, 20, 200], tone: "bright" },
+    { k: ["langit", "sky", "awan", "cerah"], hues: [205, 195, 50], tone: "bright" },
+    // sea / water
+    { k: ["pantai", "beach", "laut", "sea", "ocean", "samudra", "air", "water", "biru laut"], hues: [195, 210, 48], tone: "" },
+    { k: ["tropis", "tropical", "pulau", "island"], hues: [170, 40, 330], tone: "bright" },
+    // nature
+    { k: ["hutan", "forest", "daun", "leaf", "alam", "nature", "taman", "tumbuhan"], hues: [130, 95, 40], tone: "" },
+    { k: ["gunung", "mountain", "batu", "stone", "tanah", "earth", "pasir", "sand", "gurun", "desert"], hues: [32, 45, 200], tone: "muted" },
+    { k: ["bunga", "flower", "floral", "mawar", "rose"], hues: [340, 300, 95], tone: "bright" },
+    // fire / energy
+    { k: ["api", "fire", "lava", "panas", "flame", "membara"], hues: [10, 28, 45], tone: "warm" },
+    { k: ["musim gugur", "autumn", "gugur", "maple"], hues: [24, 36, 10], tone: "warm" },
+    // tech / future
+    { k: ["teknologi", "technology", "tech", "digital", "cyber", "ai", "robot", "data", "elektronik"], hues: [215, 265, 185], tone: "" },
+    { k: ["neon", "gaming", "game", "esports", "futuristik"], hues: [285, 190, 330], tone: "bright" },
+    { k: ["luar angkasa", "space", "galaksi", "galaxy", "kosmik", "cosmic", "malam", "night"], hues: [250, 220, 285], tone: "dark" },
+    // food / drink
+    { k: ["kopi", "coffee", "cokelat", "chocolate", "kayu", "wood"], hues: [25, 18, 35], tone: "muted" },
+    { k: ["teh", "tea", "matcha"], hues: [95, 70, 45], tone: "muted" },
+    { k: ["buah", "fruit", "jeruk", "orange", "citrus", "mangga"], hues: [35, 48, 95], tone: "bright" },
+    { k: ["anggur", "wine", "grape", "berry"], hues: [330, 290, 350], tone: "dark" },
+    // mood / brand
+    { k: ["mewah", "luxury", "premium", "emas", "gold", "elegan"], hues: [43, 280, 30], tone: "dark" },
+    { k: ["cinta", "love", "romantis", "romantic", "valentine"], hues: [345, 330, 15], tone: "" },
+    { k: ["anak", "kids", "ceria", "playful", "fun", "mainan"], hues: [48, 200, 340], tone: "bright" },
+    { k: ["sehat", "health", "medis", "medical", "segar", "fresh"], hues: [160, 195, 95], tone: "bright" },
+    { k: ["musik", "music", "konser", "concert", "festival"], hues: [290, 330, 45], tone: "bright" },
+    { k: ["olahraga", "sport", "energi", "energy", "dinamis"], hues: [350, 210, 48], tone: "bright" },
+    { k: ["minimalis", "clean", "bersih", "tenang", "calm"], hues: [210, 200, 190], tone: "muted" },
+    { k: ["vintage", "retro", "klasik", "jadul", "nostalgia"], hues: [30, 180, 350], tone: "muted" }
+  ];
+
+  // Find theme hues by scanning keywords; blend multiple matches (multi-word themes).
+  function themeHues(theme) {
+    var t = (theme || "").toLowerCase();
+    var collected = [], tones = [], matched = false;
+    for (var i = 0; i < COLOR_KEYWORDS.length; i++) {
+      var entry = COLOR_KEYWORDS[i];
+      for (var j = 0; j < entry.k.length; j++) {
+        if (t.indexOf(entry.k[j]) >= 0) {
+          matched = true;
+          collected = collected.concat(entry.hues);
+          if (entry.tone) tones.push(entry.tone);
+          break;
+        }
+      }
+    }
+    if (!matched) {
+      // Unknown theme: derive a stable-but-themed hue from the text,
+      // then build a harmonious spread around it (not a flat default).
+      var h = 0;
+      for (var c = 0; c < t.length; c++) h = (h + t.charCodeAt(c) * 13 + c * 7) % 360;
+      if (!t.length) h = Math.floor(Math.random() * 360);
+      collected = [h, (h + 30) % 360, (h + 330) % 360];
+    }
+    return { hues: collected, tones: tones, matched: matched };
   }
+
+  // Style only NUDGES the palette (saturation/lightness/warmth), never overrides theme.
+  var STYLE_COLOR_BIAS = {
+    minimalis:  { satMul: 0.6, light: +8, note: "saturasi diturunkan & lebih terang untuk kesan bersih" },
+    retro:      { satMul: 0.8, light: +4, hueShift: -6, note: "sedikit pudar & hangat khas retro" },
+    futuristik: { satMul: 1.15, light: -6, note: "lebih jenuh & gelap untuk nuansa teknologis" },
+    elegan:     { satMul: 0.85, light: -10, note: "lebih dalam & tenang untuk kesan mewah" },
+    "pop-art":  { satMul: 1.3, light: +2, note: "saturasi tinggi & mencolok ala pop-art" },
+    natural:    { satMul: 0.7, light: +2, hueShift: +4, note: "lebih earthy & lembut" },
+    brutalis:   { satMul: 1.1, light: -4, contrast: true, note: "kontras ekstrem & mentah" }
+  };
+
+  function clampHue(h) { return ((h % 360) + 360) % 360; }
+  function clamp255(v) { return Math.max(0, Math.min(100, v)); }
+
+  // Build the 5 hues for a scheme from a chosen base hue.
+  function schemeHues(base, scheme) {
+    base = clampHue(base);
+    switch (scheme) {
+      case "complementary": return [base, base, clampHue(base + 180), clampHue(base + 180), base];
+      case "triadic":       return [base, clampHue(base + 120), clampHue(base + 240), clampHue(base + 120), clampHue(base + 240)];
+      case "monochrome":    return [base, base, base, base, base];
+      default:              return [base, clampHue(base + 22), clampHue(base + 44), clampHue(base - 20), clampHue(base + 11)]; // analogous
+    }
+  }
+
   function generatePalette(input) {
     var theme = (input.theme || "desain").trim();
     var sKey = styleOf(input);
     var scheme = input.scheme || seededPick(["analogous", "complementary", "triadic", "monochrome"], theme);
-    var base = baseHueFor(theme, sKey);
-    var hues;
-    switch (scheme) {
-      case "complementary": hues = [base, base, (base + 180) % 360, (base + 180) % 360, base]; break;
-      case "triadic": hues = [base, (base + 120) % 360, (base + 240) % 360, base, (base + 120) % 360]; break;
-      case "monochrome": hues = [base, base, base, base, base]; break;
-      default: hues = [base, (base + 25) % 360, (base + 50) % 360, (base - 25 + 360) % 360, (base + 12) % 360];
+
+    var info = themeHues(theme);
+    var bias = STYLE_COLOR_BIAS[sKey] || { satMul: 1, light: 0 };
+
+    // ----- VARIATION: random each generate, but stays on-theme -----
+    // Pick which of the theme's hues becomes the base (rotates through matches),
+    // plus small random jitter so repeated presses differ without drifting off-theme.
+    var variant = (input.variant != null) ? input.variant : Math.floor(Math.random() * 1000);
+    var hueList = info.hues;
+    var baseHue = clampHue(hueList[variant % hueList.length] + (bias.hueShift || 0) + (rand(variant, 1) * 10 - 5));
+
+    var hues = schemeHues(baseHue, scheme);
+    // For analogous/triadic, weave the theme's OTHER hues in so multi-word
+    // themes (e.g. senja + pantai) actually show both families.
+    if ((scheme === "analogous" || scheme === "triadic") && hueList.length > 1) {
+      hues[2] = clampHue(hueList[(variant + 1) % hueList.length] + (bias.hueShift || 0)); // accent from a different theme hue
+      if (hueList.length > 2) hues[1] = clampHue(hueList[(variant + 2) % hueList.length]);
     }
-    var sats = [70, 55, 80, 45, 30];
-    var lts = [22, 42, 55, 70, 88];
+
+    // ----- tone bias from theme keywords -----
+    var tone = info.tones.length ? info.tones[variant % info.tones.length] : "";
+    var satShift = 0, lightShift = 0, dark = false;
+    if (tone === "warm") { satShift = 8; }
+    else if (tone === "bright") { satShift = 12; lightShift = 4; }
+    else if (tone === "muted") { satShift = -18; }
+    else if (tone === "dark") { lightShift = -12; dark = true; }
+
+    // Base saturation/lightness curves per role, then adjusted by style + tone + jitter.
+    var baseSat = [74, 58, 84, 46, 28];
+    var baseLt  = dark ? [30, 46, 58, 70, 16] : [26, 44, 56, 72, 92];
+    if (bias.contrast) { baseLt = [14, 40, 58, 78, 96]; } // brutalis: push contrast
+
     var roles = ["Primary", "Secondary", "Accent", "Muted", "Base"];
-    var colors = hues.map(function (h, i) { return { hex: hslToHex(h, sats[i], lts[i]), role: roles[i] }; });
-    return { theme: theme, style: sKey, scheme: scheme, colors: colors };
+    var colors = hues.map(function (h, i) {
+      var jitterS = (rand(variant, i + 2) * 10 - 5);
+      var jitterL = (rand(variant, i + 7) * 8 - 4);
+      var s = clamp255(baseSat[i] * (bias.satMul || 1) + satShift + jitterS);
+      var l = clamp255(baseLt[i] + (bias.light || 0) + lightShift + jitterL);
+      // Monochrome: keep hue fixed, spread saturation/lightness widely.
+      if (scheme === "monochrome") {
+        s = clamp255(30 + i * 14 + satShift * 0.5);
+        l = clamp255((dark ? [18, 32, 48, 64, 82] : [20, 38, 54, 72, 90])[i] + (bias.light || 0));
+      }
+      return { hex: hslToHex(h, s, l), role: roles[i] };
+    });
+
+    return {
+      theme: theme, style: sKey, scheme: scheme, variant: variant,
+      matched: info.matched, colors: colors
+    };
+  }
+
+  // small deterministic 0..1 from (seed, salt) for repeatable jitter within one palette
+  function rand(seed, salt) {
+    var x = Math.sin((seed + 1) * 97.13 + salt * 31.7) * 43758.5453;
+    return x - Math.floor(x);
   }
 
   var FONT_PAIRS = {
