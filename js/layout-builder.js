@@ -121,6 +121,167 @@
     }
 
     /* =========================================================
+       SHAPE LIBRARY — SVG geometry so edges stay crisp at any size.
+       Each shape returns an <svg> string drawn in a 0..100 viewBox.
+       Supports fill, stroke color, stroke width, and (for lines/arrows)
+       a single stroke. Used by BOTH poster and portfolio editors.
+       ========================================================= */
+    var SHAPE_DEFS = {
+      // basic
+      rectangle: { label: "Persegi Panjang", cat: "Dasar", filled: true, svg: function (o) { return '<rect x="2" y="2" width="96" height="96" rx="' + (o.radius || 0) + '" ' + fillStroke(o) + '/>'; } },
+      square:    { label: "Persegi", cat: "Dasar", filled: true, svg: function (o) { return '<rect x="18" y="18" width="64" height="64" rx="' + (o.radius || 0) + '" ' + fillStroke(o) + '/>'; } },
+      circle:    { label: "Lingkaran", cat: "Dasar", filled: true, svg: function (o) { return '<circle cx="50" cy="50" r="46" ' + fillStroke(o) + '/>'; } },
+      ellipse:   { label: "Oval", cat: "Dasar", filled: true, svg: function (o) { return '<ellipse cx="50" cy="50" rx="48" ry="34" ' + fillStroke(o) + '/>'; } },
+      triangle:  { label: "Segitiga", cat: "Dasar", filled: true, svg: function (o) { return '<polygon points="50,4 96,96 4,96" ' + fillStroke(o) + '/>'; } },
+      diamond:   { label: "Belah Ketupat", cat: "Dasar", filled: true, svg: function (o) { return '<polygon points="50,2 98,50 50,98 2,50" ' + fillStroke(o) + '/>'; } },
+      // geometric
+      pentagon:  { label: "Segi Lima", cat: "Geometris", filled: true, svg: function (o) { return '<polygon points="' + poly(5, -90) + '" ' + fillStroke(o) + '/>'; } },
+      hexagon:   { label: "Segi Enam", cat: "Geometris", filled: true, svg: function (o) { return '<polygon points="' + poly(6, 0) + '" ' + fillStroke(o) + '/>'; } },
+      octagon:   { label: "Segi Delapan", cat: "Geometris", filled: true, svg: function (o) { return '<polygon points="' + poly(8, 22.5) + '" ' + fillStroke(o) + '/>'; } },
+      trapezoid: { label: "Trapesium", cat: "Geometris", filled: true, svg: function (o) { return '<polygon points="22,20 78,20 98,84 2,84" ' + fillStroke(o) + '/>'; } },
+      // lines & arrows (stroke-only)
+      line:      { label: "Garis", cat: "Garis & Panah", filled: false, svg: function (o) { return '<line x1="4" y1="50" x2="96" y2="50" ' + strokeOnly(o) + '/>'; } },
+      dashed:    { label: "Garis Putus", cat: "Garis & Panah", filled: false, svg: function (o) { return '<line x1="4" y1="50" x2="96" y2="50" stroke-dasharray="8 6" ' + strokeOnly(o) + '/>'; } },
+      arrow:     { label: "Panah", cat: "Garis & Panah", filled: false, svg: function (o) { return '<line x1="4" y1="50" x2="88" y2="50" ' + strokeOnly(o) + '/><polygon points="88,40 98,50 88,60" fill="' + o.stroke + '"/>'; } },
+      arrow2:    { label: "Panah 2 Arah", cat: "Garis & Panah", filled: false, svg: function (o) { return '<line x1="12" y1="50" x2="88" y2="50" ' + strokeOnly(o) + '/><polygon points="12,40 2,50 12,60" fill="' + o.stroke + '"/><polygon points="88,40 98,50 88,60" fill="' + o.stroke + '"/>'; } },
+      // decorative
+      star:      { label: "Bintang", cat: "Dekoratif", filled: true, svg: function (o) { return '<polygon points="' + star(5, 48, 20) + '" ' + fillStroke(o) + '/>'; } },
+      heart:     { label: "Hati", cat: "Dekoratif", filled: true, svg: function (o) { return '<path d="M50 88 L18 54 A20 20 0 0 1 50 28 A20 20 0 0 1 82 54 Z" ' + fillStroke(o) + '/>'; } },
+      cloud:     { label: "Awan", cat: "Dekoratif", filled: true, svg: function (o) { return '<path d="M26 70 a18 18 0 0 1 2 -34 a22 22 0 0 1 42 4 a16 16 0 0 1 4 30 Z" ' + fillStroke(o) + '/>'; } },
+      moon:      { label: "Bulan Sabit", cat: "Dekoratif", filled: true, svg: function (o) { return '<path d="M66 8 A46 46 0 1 0 66 92 A36 36 0 1 1 66 8 Z" ' + fillStroke(o) + '/>'; } },
+      plus:      { label: "Tanda Tambah", cat: "Dekoratif", filled: true, svg: function (o) { return '<polygon points="38,6 62,6 62,38 94,38 94,62 62,62 62,94 38,94 38,62 6,62 6,38 38,38" ' + fillStroke(o) + '/>'; } },
+      // extra
+      wave:      { label: "Gelombang", cat: "Tambahan", filled: false, svg: function (o) { return '<path d="M2 50 Q 18 20 34 50 T 66 50 T 98 50" fill="none" ' + strokeOnly(o) + '/>'; } },
+      curve:     { label: "Kurva", cat: "Tambahan", filled: false, svg: function (o) { return '<path d="M4 90 Q 50 2 96 90" fill="none" ' + strokeOnly(o) + '/>'; } },
+      bubble:    { label: "Speech Bubble", cat: "Tambahan", filled: true, svg: function (o) { return '<path d="M8 10 H92 A6 6 0 0 1 98 16 V66 A6 6 0 0 1 92 72 H40 L24 92 L26 72 H8 A6 6 0 0 1 2 66 V16 A6 6 0 0 1 8 10 Z" ' + fillStroke(o) + '/>'; } },
+      blob:      { label: "Abstrak", cat: "Tambahan", filled: true, svg: function (o) { return '<path d="M54 6 Q90 10 92 44 Q96 80 60 90 Q24 98 12 64 Q2 30 30 14 Q40 4 54 6 Z" ' + fillStroke(o) + '/>'; } }
+    };
+    var SHAPE_ORDER = ["rectangle","square","circle","ellipse","triangle","diamond","pentagon","hexagon","octagon","trapezoid","line","dashed","arrow","arrow2","star","heart","cloud","moon","plus","wave","curve","bubble","blob"];
+
+    function fillStroke(o) {
+      var sw = o.strokeWidth || 0;
+      return 'fill="' + (o.fill || "none") + '" fill-opacity="' + (o.opacity != null ? o.opacity : 1) + '"' +
+        (sw > 0 ? ' stroke="' + o.stroke + '" stroke-width="' + sw + '"' : "");
+    }
+    function strokeOnly(o) {
+      return 'stroke="' + (o.stroke || "#000") + '" stroke-width="' + (o.strokeWidth || 4) + '" stroke-linecap="round" fill="none" stroke-opacity="' + (o.opacity != null ? o.opacity : 1) + '"';
+    }
+    function poly(n, startDeg) {
+      var pts = [], cx = 50, cy = 50, r = 48;
+      for (var i = 0; i < n; i++) {
+        var a = (startDeg + i * 360 / n) * Math.PI / 180;
+        pts.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1));
+      }
+      return pts.join(" ");
+    }
+    function star(points, outer, inner) {
+      var pts = [], cx = 50, cy = 50;
+      for (var i = 0; i < points * 2; i++) {
+        var r = i % 2 === 0 ? outer : inner;
+        var a = (-90 + i * 180 / points) * Math.PI / 180;
+        pts.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1));
+      }
+      return pts.join(" ");
+    }
+    // Build the SVG markup for a shape element, resolving palette-colors.
+    function shapeSVG(e, colors) {
+      var def = SHAPE_DEFS[e.shape] || SHAPE_DEFS.rectangle;
+      var resolve = function (key, fallback) {
+        if (!key) return fallback;
+        if (key === "accent") return colors.accent;
+        if (key === "text") return colors.text;
+        if (key === "bg") return colors.bg;
+        return key; // literal hex
+      };
+      var o = {
+        fill: def.filled ? resolve(e.fill != null ? e.fill : "accent", colors.accent) : "none",
+        stroke: resolve(e.stroke != null ? e.stroke : "accent", colors.accent),
+        strokeWidth: e.strokeWidth != null ? e.strokeWidth : (def.filled ? 0 : 4),
+        opacity: e.opacity != null ? e.opacity : 1,
+        radius: e.radius || 0
+      };
+      return '<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' + def.svg(o) + '</svg>';
+    }
+    // Small preview icon for the shape picker.
+    function shapeIcon(key) {
+      var def = SHAPE_DEFS[key];
+      var o = { fill: def.filled ? "currentColor" : "none", stroke: "currentColor", strokeWidth: def.filled ? 0 : 7, opacity: 1, radius: key === "rectangle" ? 10 : 0 };
+      return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + def.svg(o) + '</svg>';
+    }
+
+    /* =========================================================
+       REUSABLE DRAG / RESIZE / ROTATE ENGINE
+       Works on any element with %-based x/y/w/h (+ optional rot).
+       getRect() returns the live canvas bounding rect so px->% stays
+       accurate under zoom and panel/size changes. onEnd() commits state.
+       ========================================================= */
+    function makeDragEngine(getRect, onEnd) {
+      function clampN(v, a, b) { return Math.max(a, Math.min(b, v)); }
+      function drag(e, node, ev) {
+        var rect = getRect();
+        var sx = ev.clientX, sy = ev.clientY, ox = e.x, oy = e.y;
+        function move(mv) {
+          var dx = (mv.clientX - sx) / rect.width * 100;
+          var dy = (mv.clientY - sy) / rect.height * 100;
+          e.x = clampN(ox + dx, -10, 100 - 2); e.y = clampN(oy + dy, -10, 100 - 2);
+          node.style.left = e.x + "%"; node.style.top = e.y + "%";
+        }
+        function up() { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); onEnd && onEnd(); }
+        window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+      }
+      function resize(e, node, ev) {
+        var rect = getRect();
+        var sx = ev.clientX, sy = ev.clientY, ow = e.w, oh = e.h;
+        function move(mv) {
+          var dw = (mv.clientX - sx) / rect.width * 100;
+          var dh = (mv.clientY - sy) / rect.height * 100;
+          e.w = clampN(ow + dw, 3, 110); e.h = clampN(oh + dh, 2, 110);
+          node.style.width = e.w + "%"; node.style.height = e.h + "%";
+        }
+        function up() { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); onEnd && onEnd(); }
+        window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+      }
+      function rotate(e, node, ev) {
+        var r = node.getBoundingClientRect();
+        var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        function move(mv) {
+          var ang = Math.atan2(mv.clientY - cy, mv.clientX - cx) * 180 / Math.PI + 90;
+          e.rot = Math.round(ang);
+          node.style.transform = "rotate(" + e.rot + "deg)";
+        }
+        function up() { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); onEnd && onEnd(); }
+        window.addEventListener("pointermove", move); window.addEventListener("pointerup", up);
+      }
+      return { drag: drag, resize: resize, rotate: rotate };
+    }
+
+    // Shape picker: a toggle button that reveals a categorized grid of shapes.
+    // onPick(shapeKey) is called when a shape is chosen.
+    function shapePicker(onPick) {
+      var wrap = el("div", { class: "shape-picker-wrap" });
+      var pop = el("div", { class: "shape-pop", style: "display:none" });
+      var open = false;
+      var cats = {};
+      SHAPE_ORDER.forEach(function (key) { var cat = SHAPE_DEFS[key].cat; (cats[cat] = cats[cat] || []).push(key); });
+      Object.keys(cats).forEach(function (cat) {
+        pop.appendChild(el("div", { class: "section-label", text: cat }));
+        var grid = el("div", { class: "shape-picker" });
+        cats[cat].forEach(function (key) {
+          grid.appendChild(el("button", { type: "button", title: SHAPE_DEFS[key].label, html: shapeIcon(key),
+            onClick: function () { open = false; pop.style.display = "none"; onPick(key); } }));
+        });
+        pop.appendChild(grid);
+      });
+      var toggle = el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "+ Shape ▾",
+        onClick: function () { open = !open; pop.style.display = open ? "block" : "none"; } });
+      wrap.appendChild(toggle); wrap.appendChild(pop);
+      return wrap;
+    }
+
+    // expose for any other module
+    G.shapes = { defs: SHAPE_DEFS, order: SHAPE_ORDER, svg: shapeSVG, icon: shapeIcon, picker: shapePicker };
+
+    /* =========================================================
        Export (PDF via jsPDF + html2canvas; PNG via html2canvas)
        ========================================================= */
     function overlay(msg) {
@@ -323,7 +484,7 @@
       return total; // base64 chars ≈ bytes
     }
 
-    function renderPortfolioPage(st, pg, pageIndex) {
+    function renderPortfolioPage(st, pg, pageIndex, ctrl) {
       var c = portfolioColors(st);
       var fmt = PORTFOLIO_FORMATS[st.format];
       var pad = Math.round(fmt.w * ((pg.margin || 9) / 100));
@@ -490,6 +651,50 @@
           canvas.appendChild(editable("div", f.social, "font-size:14px;opacity:.65;", function (v) { fset("social", v); }));
         }
       }
+
+      // ----- FREE ELEMENT LAYER (draggable text/image/shape on top of template) -----
+      if (ctrl) {
+        var layer = el("div", { class: "pf-freelayer" + (ctrl.isActive() ? " editing" : "") });
+        (pg.freeEls || []).forEach(function (e) {
+          var rotCss = e.rot ? "transform:rotate(" + e.rot + "deg);" : "";
+          var node = el("div", { class: "pe-el" + (ctrl.isSelected(e) ? " selected" : ""), style:
+            "left:" + e.x + "%;top:" + e.y + "%;width:" + e.w + "%;height:" + e.h + "%;" + rotCss });
+          node._eid = e.id;
+          if (e.type === "text") {
+            var fam = e.family === "head" ? c.head : c.font;
+            var fontPx = Math.round(fmt.w * (e.size / 100));
+            var span = el("div", { class: "pe-el__text", contenteditable: "false", style:
+              "font-family:" + fam + ";font-weight:" + e.weight + ";font-size:" + fontPx + "px;line-height:" + e.lh +
+              ";color:" + (e.color === "accent" ? c.accent : (e.color && e.color.charAt(0) === "#" ? e.color : c.text)) + ";text-align:" + e.align + ";" });
+            span.textContent = e.text;
+            span.addEventListener("dblclick", function (ev) { ev.stopPropagation(); span.setAttribute("contenteditable", "true"); span.focus(); });
+            span.addEventListener("blur", function () { span.setAttribute("contenteditable", "false"); if (span.textContent !== e.text) { e.text = span.textContent; ctrl.commit(); } });
+            node.appendChild(span);
+          } else if (e.type === "image") {
+            if (e.url) node.appendChild(el("img", { class: "pe-el__img", src: e.url, alt: "elemen" }));
+            else node.appendChild(el("div", { class: "pe-el__imgempty", html: "＋ klik 2×" }));
+            node.addEventListener("dblclick", function (ev) { ev.stopPropagation(); ctrl.pickImage(e); });
+          } else if (e.type === "shape") {
+            node.appendChild(el("div", { class: "pe-el__shape", html: shapeSVG(e, c) }));
+          }
+          node.addEventListener("pointerdown", function (ev) {
+            if (ev.target && ev.target.getAttribute && ev.target.getAttribute("contenteditable") === "true") return;
+            ev.preventDefault(); ev.stopPropagation();
+            ctrl.select(e); ctrl.engine.drag(e, node, ev);
+          });
+          if (ctrl.isSelected(e)) {
+            var h = el("div", { class: "pe-handle" });
+            h.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); ctrl.engine.resize(e, node, ev); });
+            node.appendChild(h);
+            var r = el("div", { class: "pe-rotate", title: "Putar" });
+            r.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); ctrl.engine.rotate(e, node, ev); });
+            node.appendChild(r);
+          }
+          layer.appendChild(node);
+        });
+        layer.addEventListener("pointerdown", function (ev) { if (ev.target === layer) ctrl.select(null); });
+        canvas.appendChild(layer);
+      }
       return canvas;
     }
 
@@ -505,22 +710,89 @@
 
       var pagesWrap = el("div", { class: "lb-pages" });
       var canvasNodes = [];
+      var selectedFreeId = null;
+      var selPageCanvas = null; // canvas node of the selected page (for drag rect)
+
+      // Reusable engine; getRect resolves the selected page canvas live.
+      var pfEngine = makeDragEngine(function () { return selPageCanvas ? selPageCanvas.getBoundingClientRect() : { width: 1, height: 1 }; }, function () { buildPanel(); rebuild(); });
+
+      function selFree() {
+        var pg = st.pages[selected];
+        return pg && pg.freeEls ? pg.freeEls.filter(function (e) { return e.id === selectedFreeId; })[0] : null;
+      }
+      function pfPickImage(e) {
+        var input = el("input", { type: "file", accept: "image/*", style: "display:none" });
+        document.body.appendChild(input);
+        input.addEventListener("change", function (ev) {
+          var fl = ev.target.files && ev.target.files[0];
+          readImage(fl, function (url) { e.url = url; rebuild(); });
+          document.body.removeChild(input);
+        });
+        input.click();
+      }
 
       function rebuild() {
-        pagesWrap.innerHTML = ""; canvasNodes = [];
+        pagesWrap.innerHTML = ""; canvasNodes = []; selPageCanvas = null;
         var fmt = PORTFOLIO_FORMATS[st.format];
         st.pages.forEach(function (pg, idx) {
           var scroll = el("div", { class: "lb-scroll" });
-          var canvas = renderPortfolioPage(st, pg, idx);
+          var ctrl = (idx === selected) ? {
+            isActive: function () { return true; },
+            isSelected: function (e) { return e.id === selectedFreeId; },
+            isSelectedId: function () { return selectedFreeId; },
+            select: function (e) { selectedFreeId = e ? e.id : null; buildPanel(); rebuild(); },
+            commit: function () { buildPanel(); rebuild(); },
+            pickImage: pfPickImage,
+            engine: pfEngine
+          } : null;
+          var canvas = renderPortfolioPage(st, pg, idx, ctrl);
+          if (idx === selected) selPageCanvas = canvas;
           scroll.appendChild(canvas);
           var labelRow = el("div", { class: "row-between", style: "width:100%;" }, [
             el("div", { class: "lb-page-label", text: "Hal " + (idx + 1) + " · " + pageTypeLabel(pg.type) + (idx === selected ? "  ← dipilih" : "") }),
-            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "Pilih", onClick: function () { selected = idx; buildPanel(); rebuild(); } })
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "Pilih", onClick: function () { selected = idx; selectedFreeId = null; buildPanel(); rebuild(); } })
           ]);
-          pagesWrap.appendChild(el("div", { style: "width:100%;" + (idx === selected ? "outline:2px solid var(--purple);outline-offset:6px;border-radius:8px;" : ""), onClick: function () { if (selected !== idx) { selected = idx; buildPanel(); rebuild(); } } }, [labelRow, scroll]));
+          pagesWrap.appendChild(el("div", { style: "width:100%;" + (idx === selected ? "outline:2px solid var(--purple);outline-offset:6px;border-radius:8px;" : ""), onClick: function () { if (selected !== idx) { selected = idx; selectedFreeId = null; buildPanel(); rebuild(); } } }, [labelRow, scroll]));
           canvasNodes.push(canvas);
           requestAnimationFrame(function () { fitCanvas(canvas, fmt); });
         });
+      }
+
+      // ---- free element ops (operate on the selected page) ----
+      function addFree(type, shapeKey) {
+        var pg = st.pages[selected];
+        if (!pg.freeEls) pg.freeEls = [];
+        var e;
+        if (type === "text") e = { type: "text", x: 30, y: 40, w: 44, h: 10, text: "Teks baru", size: 5, color: "text", align: "left", weight: 700, family: "head", lh: 1.2, rot: 0 };
+        else if (type === "image") e = { type: "image", x: 30, y: 30, w: 40, h: 34, url: "", rot: 0 };
+        else {
+          var def = SHAPE_DEFS[shapeKey] || SHAPE_DEFS.rectangle;
+          e = { type: "shape", x: 34, y: 38, w: 32, h: 26, shape: shapeKey || "rectangle", fill: def.filled ? "accent" : "none", stroke: "accent", strokeWidth: def.filled ? 0 : 4, opacity: 1, radius: 0, rot: 0 };
+        }
+        e.id = "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        pg.freeEls.push(e); selectedFreeId = e.id;
+        buildPanel(); rebuild();
+        toast("Elemen ditambahkan ke halaman");
+      }
+      function removeFree() {
+        var pg = st.pages[selected]; if (!pg.freeEls) return;
+        pg.freeEls = pg.freeEls.filter(function (e) { return e.id !== selectedFreeId; });
+        selectedFreeId = null; buildPanel(); rebuild();
+      }
+      function duplicateFree() {
+        var e = selFree(); if (!e) return;
+        var copy = JSON.parse(JSON.stringify(e));
+        copy.id = "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        copy.x = Math.min(90, e.x + 4); copy.y = Math.min(90, e.y + 4);
+        st.pages[selected].freeEls.push(copy); selectedFreeId = copy.id;
+        buildPanel(); rebuild();
+      }
+      function reorderFree(dir) {
+        var pg = st.pages[selected]; if (!pg.freeEls) return;
+        var i = -1; pg.freeEls.forEach(function (e, k) { if (e.id === selectedFreeId) i = k; });
+        if (i < 0) return; var j = i + dir; if (j < 0 || j >= pg.freeEls.length) return;
+        var t = pg.freeEls[i]; pg.freeEls[i] = pg.freeEls[j]; pg.freeEls[j] = t;
+        buildPanel(); rebuild();
       }
 
       // ---------- settings panel ----------
@@ -575,8 +847,74 @@
           if (meta.slots > 0) fields.push(rangeField("Ukuran Gambar (%)", pg.imgSize, 60, 130, 1, function (v) { pg.imgSize = v; rebuild(); }));
           fields = fields.concat(pageFieldEditors(pg, rebuild));
           panel.appendChild(group("Pengaturan Halaman", fields));
+
+          // ---- Free elements (drag & drop) on this page ----
+          var freeChildren = [
+            el("p", { class: "pe-empty-note", text: "Tambahkan elemen bebas yang bisa digeser di atas halaman ini." }),
+            el("div", { class: "pe-addbar" }, [
+              el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Teks", onClick: function () { addFree("text"); } }),
+              el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Gambar", onClick: function () { addFree("image"); } })
+            ]),
+            shapePicker(function (shapeKey) { addFree("shape", shapeKey); })
+          ];
+
+          var freeList = pg.freeEls || [];
+          if (freeList.length) {
+            var ll = el("div", { class: "pe-layerlist", style: "margin-top:8px;" });
+            freeList.slice().reverse().forEach(function (e) {
+              var nm = e.type === "text" ? ("T: " + (e.text || "").slice(0, 12)) : (e.type === "image" ? "Gambar" : ("Shape: " + ((SHAPE_DEFS[e.shape] || {}).label || "")));
+              ll.appendChild(el("div", { class: "pe-layer" + (e.id === selectedFreeId ? " active" : "") }, [
+                el("span", { class: "pe-layer__name", text: nm, onClick: function () { selectedFreeId = e.id; buildPanel(); rebuild(); } }),
+                el("button", { class: "pe-layer__btn", type: "button", title: "Hapus", text: "✕", onClick: function () { selectedFreeId = e.id; removeFree(); } })
+              ]));
+            });
+            freeChildren.push(ll);
+          }
+
+          var fe = selFree();
+          if (fe) {
+            freeChildren.push(el("div", { class: "section-label", style: "color:var(--purple-bright);margin-top:8px;", text: "Elemen terpilih: " + fe.type }));
+            freeChildren.push(el("div", { class: "lb-row--2" }, [
+              miniNumP("X %", Math.round(fe.x), function (v) { fe.x = clampP(v, -10, 100); rebuild(); }),
+              miniNumP("Y %", Math.round(fe.y), function (v) { fe.y = clampP(v, -10, 100); rebuild(); }),
+              miniNumP("W %", Math.round(fe.w), function (v) { fe.w = clampP(v, 3, 110); rebuild(); }),
+              miniNumP("H %", Math.round(fe.h), function (v) { fe.h = clampP(v, 2, 110); rebuild(); })
+            ]));
+            freeChildren.push(rangeField("Rotasi (°)", fe.rot || 0, 0, 360, 1, function (v) { fe.rot = v; rebuild(); }));
+            if (fe.type === "text") {
+              freeChildren.push(textField("Teks", fe.text, function (v) { fe.text = v; rebuild(); }, true));
+              freeChildren.push(rangeField("Ukuran Font", fe.size, 2, 20, 0.2, function (v) { fe.size = v; rebuild(); }));
+              freeChildren.push(rangeField("Tebal", fe.weight, 300, 900, 100, function (v) { fe.weight = v; rebuild(); }));
+              freeChildren.push(el("div", { class: "section-label", text: "Alignment" }));
+              freeChildren.push(segmented([{ value: "left", label: "Kiri" }, { value: "center", label: "Tengah" }, { value: "right", label: "Kanan" }], fe.align, function (v) { fe.align = v; rebuild(); }));
+              freeChildren.push(el("div", { class: "section-label", text: "Warna" }));
+              freeChildren.push(segmented([{ value: "text", label: "Teks" }, { value: "accent", label: "Aksen" }], (fe.color === "accent" ? "accent" : "text"), function (v) { fe.color = v; rebuild(); }));
+            } else if (fe.type === "image") {
+              freeChildren.push(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Ganti Gambar", onClick: function () { pfPickImage(fe); } }));
+            } else if (fe.type === "shape") {
+              var sdef = SHAPE_DEFS[fe.shape] || SHAPE_DEFS.rectangle;
+              freeChildren.push(el("div", { class: "section-label", text: "Bentuk: " + sdef.label }));
+              freeChildren.push(shapePicker(function (sk) { fe.shape = sk; var d = SHAPE_DEFS[sk]; if (!d.filled && (!fe.strokeWidth || fe.strokeWidth === 0)) fe.strokeWidth = 4; buildPanel(); rebuild(); }));
+              if (sdef.filled) { freeChildren.push(el("div", { class: "section-label", text: "Warna Isi" })); freeChildren.push(segmented([{ value: "accent", label: "Aksen" }, { value: "text", label: "Teks" }, { value: "bg", label: "BG" }], (fe.fill || "accent"), function (v) { fe.fill = v; rebuild(); })); }
+              freeChildren.push(rangeField("Tebal Garis", fe.strokeWidth || 0, 0, 16, 0.5, function (v) { fe.strokeWidth = v; rebuild(); }));
+              freeChildren.push(rangeField("Transparansi", fe.opacity != null ? fe.opacity : 1, 0.1, 1, 0.05, function (v) { fe.opacity = v; rebuild(); }));
+            }
+            freeChildren.push(el("div", { class: "lb-row", style: "margin-top:8px;" }, [
+              el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "⧉ Duplicate", onClick: duplicateFree }),
+              el("button", { class: "chip", type: "button", title: "Naik", text: "▲", onClick: function () { reorderFree(1); } }),
+              el("button", { class: "chip", type: "button", title: "Turun", text: "▼", onClick: function () { reorderFree(-1); } }),
+              el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "✕ Hapus", onClick: removeFree })
+            ]));
+          }
+          panel.appendChild(group("Elemen Bebas (drag & drop)", freeChildren));
         }
       }
+
+      function miniNumP(labelText, value, onInput) {
+        var inp = el("input", { type: "text", value: String(value), onChange: function (ev) { var n = parseFloat(ev.target.value); if (!isNaN(n)) onInput(n); } });
+        return el("div", { class: "lb-field" }, [el("label", { text: labelText }), inp]);
+      }
+      function clampP(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
       function pageFieldEditors(pg, refresh) {
         var f = pg.fields, out = [];
@@ -665,7 +1003,12 @@
         weight: opts.weight || 400, family: opts.family || "body", lh: opts.lh || 1.2 };
     }
     function ie(x, y, w, h, url) { return { type: "image", x: x, y: y, w: w, h: h, url: url || "" }; }
-    function se(x, y, w, h, color) { return { type: "shape", x: x, y: y, w: w, h: h, color: color || "accent", radius: 0 }; }
+    // Shape element. `shape` = key in SHAPE_DEFS. `color` kept for backward-compat
+    // with existing templates (maps to fill). fill/stroke/strokeWidth/opacity/rot optional.
+    function se(x, y, w, h, color) {
+      return { type: "shape", x: x, y: y, w: w, h: h, shape: "rectangle", color: color || "accent",
+        fill: color || "accent", stroke: "accent", strokeWidth: 0, opacity: 1, radius: 0, rot: 0 };
+    }
 
     // 8 templates, each a DISTINCT composition (not just recolored).
     var POSTER_TEMPLATES = [
@@ -811,8 +1154,9 @@
           "width:" + f.w + "px;height:" + f.h + "px;background:" + c.bg + ";font-family:" + c.font + ";" });
 
         st.elements.forEach(function (e) {
+          var rotCss = e.rot ? "transform:rotate(" + e.rot + "deg);" : "";
           var node = el("div", { class: "pe-el" + (e.id === selectedId ? " selected" : ""), style:
-            "left:" + e.x + "%;top:" + e.y + "%;width:" + e.w + "%;height:" + e.h + "%;" });
+            "left:" + e.x + "%;top:" + e.y + "%;width:" + e.w + "%;height:" + e.h + "%;" + rotCss });
           node._eid = e.id;
 
           if (e.type === "text") {
@@ -837,8 +1181,14 @@
             else { node.appendChild(el("div", { class: "pe-el__imgempty", html: "＋ klik 2×<br>untuk upload" })); }
             node.addEventListener("dblclick", function (ev) { ev.stopPropagation(); pickImageFor(e); });
           } else if (e.type === "shape") {
-            var fill = e.color === "overlay" ? "linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,.02))" : colorVal(e.color, c.accent);
-            node.appendChild(el("div", { class: "pe-el__shape", style: "background:" + fill + ";border-radius:" + (e.radius || 0) + "px;" }));
+            // Legacy "overlay" shapes keep the gradient look; everything else uses SVG geometry.
+            if (e.color === "overlay" && !e.shape) {
+              node.appendChild(el("div", { class: "pe-el__shape", style: "background:linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,.02));border-radius:" + (e.radius || 0) + "px;" }));
+            } else if (e.shape === "overlay" || e.color === "overlay") {
+              node.appendChild(el("div", { class: "pe-el__shape", style: "background:linear-gradient(to top, rgba(0,0,0,.78), rgba(0,0,0,.02));" }));
+            } else {
+              node.appendChild(el("div", { class: "pe-el__shape", html: shapeSVG(e, c) }));
+            }
           }
 
           // selection + drag
@@ -846,14 +1196,17 @@
             if (span2editing(ev.target)) return; // don't drag while editing text
             ev.preventDefault();
             selectedId = e.id; buildPanel(); markSelection();
-            startDrag(e, node, ev);
+            poDrag.drag(e, node, ev);
           });
 
-          // resize handle on selected
+          // resize + rotate handles on selected
           if (e.id === selectedId) {
             var handle = el("div", { class: "pe-handle" });
-            handle.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); startResize(e, node, ev); });
+            handle.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); poDrag.resize(e, node, ev); });
             node.appendChild(handle);
+            var rot = el("div", { class: "pe-rotate", title: "Putar" });
+            rot.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); poDrag.rotate(e, node, ev); });
+            node.appendChild(rot);
           }
           canvasNode.appendChild(node);
         });
@@ -875,51 +1228,24 @@
         $$(".pe-el", canvasNode).forEach(function (n) {
           var on = n._eid === selectedId;
           n.classList.toggle("selected", on);
-          var h = n.querySelector(".pe-handle");
-          if (on && !h) {
+          var hasHandle = n.querySelector(".pe-handle");
+          if (on && !hasHandle) {
             var e = st.elements.filter(function (x) { return x.id === selectedId; })[0];
             var handle = el("div", { class: "pe-handle" });
-            handle.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); startResize(e, n, ev); });
+            handle.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); poDrag.resize(e, n, ev); });
             n.appendChild(handle);
-          } else if (!on && h) { h.remove(); }
+            var rot = el("div", { class: "pe-rotate", title: "Putar" });
+            rot.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); poDrag.rotate(e, n, ev); });
+            n.appendChild(rot);
+          } else if (!on && hasHandle) {
+            hasHandle.remove();
+            var r = n.querySelector(".pe-rotate"); if (r) r.remove();
+          }
         });
       }
 
-      function startDrag(e, node, ev) {
-        var rect = canvasNode.getBoundingClientRect();
-        var startX = ev.clientX, startY = ev.clientY, ox = e.x, oy = e.y;
-        function move(mv) {
-          var dx = (mv.clientX - startX) / rect.width * 100;
-          var dy = (mv.clientY - startY) / rect.height * 100;
-          e.x = clamp(ox + dx, -5, 100 - 2); e.y = clamp(oy + dy, -5, 100 - 2);
-          node.style.left = e.x + "%"; node.style.top = e.y + "%";
-        }
-        function up() {
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", up);
-          snapshot(); buildPanel();
-        }
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up);
-      }
-      function startResize(e, node, ev) {
-        var rect = canvasNode.getBoundingClientRect();
-        var startX = ev.clientX, startY = ev.clientY, ow = e.w, oh = e.h;
-        function move(mv) {
-          var dw = (mv.clientX - startX) / rect.width * 100;
-          var dh = (mv.clientY - startY) / rect.height * 100;
-          e.w = clamp(ow + dw, 4, 100); e.h = clamp(oh + dh, 3, 100);
-          node.style.width = e.w + "%"; node.style.height = e.h + "%";
-          if (e.type === "text") { var span = node.querySelector(".pe-el__text"); } // font stays size-based
-        }
-        function up() {
-          window.removeEventListener("pointermove", move);
-          window.removeEventListener("pointerup", up);
-          snapshot(); buildPanel();
-        }
-        window.addEventListener("pointermove", move);
-        window.addEventListener("pointerup", up);
-      }
+      // Reusable drag/resize/rotate engine bound to this poster canvas.
+      var poDrag = makeDragEngine(function () { return canvasNode.getBoundingClientRect(); }, function () { snapshot(); buildPanel(); });
       function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
       function pickImageFor(e) {
@@ -968,11 +1294,13 @@
         ]));
 
         // Add elements
-        panel.appendChild(group("Tambah Elemen", [el("div", { class: "pe-addbar" }, [
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Teks", onClick: function () { addElement("text"); } }),
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Gambar", onClick: function () { addElement("image"); } }),
-          el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Shape", onClick: function () { addElement("shape"); } })
-        ])]));
+        panel.appendChild(group("Tambah Elemen", [
+          el("div", { class: "pe-addbar" }, [
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Teks", onClick: function () { addElement("text"); } }),
+            el("button", { class: "btn btn--ghost btn--sm", type: "button", text: "+ Gambar", onClick: function () { addElement("image"); } })
+          ]),
+          shapePicker(function (shapeKey) { addShape(shapeKey); })
+        ]));
 
         // Layers
         var layerList = el("div", { class: "pe-layerlist" });
@@ -1027,9 +1355,21 @@
             fields.push(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Ganti Gambar", onClick: function () { pickImageFor(e); } }));
             if (e.url) fields.push(el("button", { class: "btn btn--ghost btn--sm btn--block", type: "button", text: "Hapus Gambar", onClick: function () { e.url = ""; snapshot(); renderCanvas(); markSelection(); } }));
           } else if (e.type === "shape") {
-            fields.push(el("div", { class: "section-label", text: "Warna" }));
-            fields.push(segmented([{ value: "accent", label: "Aksen" }, { value: "text", label: "Teks" }, { value: "overlay", label: "Overlay" }], e.color, function (v) { e.color = v; renderCanvas(); markSelection(); }));
-            fields.push(rangeField("Sudut (radius)", e.radius || 0, 0, 60, 1, function (v) { e.radius = v; renderCanvas(); markSelection(); }));
+            var def = SHAPE_DEFS[e.shape] || SHAPE_DEFS.rectangle;
+            fields.push(el("div", { class: "section-label", text: "Bentuk: " + def.label }));
+            fields.push(shapePicker(function (shapeKey) { e.shape = shapeKey; var d = SHAPE_DEFS[shapeKey]; if (!d.filled && (!e.strokeWidth || e.strokeWidth === 0)) e.strokeWidth = 4; snapshot(); buildPanel(); renderCanvas(); markSelection(); }));
+            if (def.filled) {
+              fields.push(el("div", { class: "section-label", text: "Warna Isi" }));
+              fields.push(segmented([{ value: "accent", label: "Aksen" }, { value: "text", label: "Teks" }, { value: "bg", label: "BG" }], (e.fill || "accent"), function (v) { e.fill = v; renderCanvas(); markSelection(); }));
+            }
+            fields.push(el("div", { class: "section-label", text: "Warna Garis" }));
+            fields.push(segmented([{ value: "accent", label: "Aksen" }, { value: "text", label: "Teks" }], (e.stroke === "text" ? "text" : "accent"), function (v) { e.stroke = v; renderCanvas(); markSelection(); }));
+            fields.push(rangeField("Tebal Garis", e.strokeWidth || 0, 0, 16, 0.5, function (v) { e.strokeWidth = v; renderCanvas(); markSelection(); }));
+            fields.push(rangeField("Transparansi", e.opacity != null ? e.opacity : 1, 0.1, 1, 0.05, function (v) { e.opacity = v; renderCanvas(); markSelection(); }));
+            fields.push(rangeField("Rotasi (°)", e.rot || 0, 0, 360, 1, function (v) { e.rot = v; renderCanvas(); markSelection(); }));
+            if (e.shape === "rectangle" || e.shape === "square") fields.push(rangeField("Sudut (radius)", e.radius || 0, 0, 50, 1, function (v) { e.radius = v; renderCanvas(); markSelection(); }));
+          } else if (e.type === "image" || e.type === "text") {
+            fields.push(rangeField("Rotasi (°)", e.rot || 0, 0, 360, 1, function (v) { e.rot = v; renderCanvas(); markSelection(); }));
           }
 
           fields.push(el("div", { class: "lb-row", style: "margin-top:8px;" }, [
@@ -1059,6 +1399,16 @@
         e.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
         st.elements.push(e); selectedId = e.id;
         snapshot(); buildPanel(); renderCanvas(); markSelection();
+      }
+      function addShape(shapeKey) {
+        var def = SHAPE_DEFS[shapeKey] || SHAPE_DEFS.rectangle;
+        var e = se(32, 36, 36, 28, "accent");
+        e.shape = shapeKey;
+        if (!def.filled) { e.strokeWidth = 4; e.fill = "none"; }
+        e.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+        st.elements.push(e); selectedId = e.id;
+        snapshot(); buildPanel(); renderCanvas(); markSelection();
+        toast("Shape " + def.label + " ditambahkan");
       }
       function duplicateSelected() {
         var e = selEl(); if (!e) return;
